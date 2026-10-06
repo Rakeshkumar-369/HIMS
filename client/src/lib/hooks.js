@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getModePref, resolvedMode } from './themes';
 import { api, tokens } from './api';
 
 /** Fetch JSON on mount / when deps change. Returns { data, error, loading, reload, setData }. */
@@ -83,4 +84,15 @@ export function useDebounced(value, ms = 250) {
     return () => clearTimeout(t);
   }, [value, ms]);
   return v;
+}
+
+/** Current light/dark preference and resolved mode; re-renders when either changes. */
+export function useMode() {
+  const [state, setState] = useState(() => ({ pref: getModePref(), mode: resolvedMode() }));
+  useEffect(() => {
+    const h = (e) => setState({ pref: e.detail.pref, mode: e.detail.mode });
+    window.addEventListener('cn:mode', h);
+    return () => window.removeEventListener('cn:mode', h);
+  }, []);
+  return state;
 }

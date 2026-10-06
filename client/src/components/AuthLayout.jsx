@@ -1,4 +1,5 @@
 import { Wordmark } from './Brand';
+import ModeToggle from './ModeToggle';
 import { HeartPulse, ClipboardList, MonitorSmartphone, Printer } from 'lucide-react';
 
 const FEATURES = [
@@ -33,7 +34,8 @@ export default function AuthLayout({ children, title, subtitle }) {
         </div>
         <div className="relative text-xs text-muted">© {new Date().getFullYear()} CareNest HIMS</div>
       </div>
-      <div className="flex flex-col items-center justify-center px-5 py-10 sm:px-10">
+      <div className="relative flex flex-col items-center justify-center px-5 py-10 sm:px-10">
+        <ModeToggle className="absolute top-4 right-4" />
         <div className="mb-8 lg:hidden"><Wordmark /></div>
         <div className="animate-in w-full max-w-md">
           <h2 className="text-[28px] font-extrabold tracking-tight">{title}</h2>

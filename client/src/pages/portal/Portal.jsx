@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { Download, LogOut, CalendarHeart, Pill, FileText, FlaskConical, Building2, Printer } from 'lucide-react';
+import { Download, LogOut, CalendarHeart, Pill, FileText, FlaskConical, Building2 } from 'lucide-react';
 import { api, tokens } from '../../lib/api';
 import { applyTheme } from '../../lib/themes';
 import { PageLoader, Avatar } from '../../components/ui';
 import { Logo } from '../../components/Brand';
+import ModeToggle from '../../components/ModeToggle';
 import CaseSheet from '../../components/CaseSheet';
 import PrintFrame from '../../components/PrintFrame';
 import { caseFmt, fmtDate, todayISO } from '../../lib/format';
@@ -14,6 +15,7 @@ export default function Portal() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [sheet, setSheet] = useState(null); // null | 'full' | visit
+  const [autoDl, setAutoDl] = useState(false);
 
   useEffect(() => {
     if (!tokens.patient()) return;
@@ -28,7 +30,8 @@ export default function Portal() {
 
   if (sheet) {
     return (
-      <PrintFrame title={`${p.full_name} · ${sheet === 'full' ? 'complete case record' : sheet.visit_date}`} back={() => setSheet(null)}>
+      <PrintFrame title={`${p.full_name} · ${sheet === 'full' ? 'complete case record' : sheet.visit_date}`} back={() => { setSheet(null); setAutoDl(false); }} autoDownload={autoDl}
+        filename={sheet === 'full' ? `CaseRecord-${p.case_no}` : `CaseSheet-${p.case_no}-${sheet.visit_date}`}>
         <CaseSheet full={sheet === 'full'} clinic={clinic} patient={p} visits={sheet === 'full' ? visits : [sheet]} />
       </PrintFrame>
     );
@@ -42,6 +45,7 @@ export default function Portal() {
         <div className="mx-auto flex h-16 max-w-4xl items-center gap-3 px-4">
           <Logo className="size-8" />
           <div className="flex-1 leading-tight"><div className="text-sm font-extrabold">{clinic.name}</div><div className="text-[11px] text-muted">Patient portal</div></div>
+          <ModeToggle />
           <button className="btn-ghost" onClick={logout}><LogOut size={16} /> Sign out</button>
         </div>
       </header>
@@ -54,7 +58,7 @@ export default function Portal() {
               <h1 className="truncate text-2xl font-extrabold">{p.full_name}</h1>
               <div className="font-mono text-xs font-bold tracking-widest text-brand-700">CASE #{caseFmt(p.case_no)} · {p.age} yrs · {p.gender}</div>
             </div>
-            <button className="btn-primary py-3" onClick={() => setSheet('full')} disabled={!visits.length}><Download size={17} /> Download full case sheet</button>
+            <button className="btn-primary py-3" onClick={() => { setAutoDl(true); setSheet('full'); }} disabled={!visits.length}><Download size={17} /> Download full case sheet</button>
           </div>
           <div className="grid gap-4 p-5 sm:grid-cols-3">
             <div className="flex gap-3"><div className="grid size-10 place-items-center rounded-2xl bg-brand-100 text-brand-700"><CalendarHeart size={18} /></div><div><div className="text-xs font-semibold text-muted">Next visit</div><div className="font-bold">{upcoming ? fmtDate(upcoming) : 'Not scheduled'}</div></div></div>
@@ -91,7 +95,7 @@ export default function Portal() {
                   <div className="text-sm text-muted">{v.complaints}</div>
                   {!!v.lab_tests.length && <div className="mt-1 flex items-center gap-1 text-xs text-brand-700"><FlaskConical size={13} /> {v.lab_tests.join(', ')}</div>}
                 </div>
-                <button className="btn-soft max-sm:w-full" onClick={() => setSheet(v)}><Printer size={15} /> A4 sheet</button>
+                <button className="btn-soft max-sm:w-full" onClick={() => setSheet(v)}><FileText size={15} /> View / PDF</button>
               </li>
             ))}
             {!visits.length && <li className="card p-8 text-center text-muted">No consultations yet.</li>}

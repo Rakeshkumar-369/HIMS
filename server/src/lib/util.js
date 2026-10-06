@@ -56,4 +56,17 @@ export async function assertClinicAccess(user, clinicId) {
   if (!row) throw new HttpError(403, 'You do not have access to this clinic');
 }
 
+/**
+ * A case file is shared by every clinic of the same owner-doctor: staff of any of
+ * those clinics can open it (in practice, once the patient tells them the 9-digit case ID).
+ */
+export async function assertPatientAccess(user, patientClinicId) {
+  const row = await one(
+    `SELECT 1 AS ok FROM clinics pc
+       JOIN clinics c2 ON c2.owner_id = pc.owner_id
+       JOIN clinic_members m ON m.clinic_id = c2.id
+      WHERE pc.id = ? AND m.user_id = ? LIMIT 1`, [patientClinicId, user.id]);
+  if (!row) throw new HttpError(403, 'This case file belongs to a clinic you do not have access to');
+}
+
 export const nullIfEmpty = (v) => (v === '' || v === undefined ? null : v);

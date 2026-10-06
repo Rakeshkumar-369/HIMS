@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { query, one, tx } from '../db.js';
-import { ah, HttpError, assertClinicAccess, todayISO, addDays, NEXT_VISIT_DAYS, nullIfEmpty } from '../lib/util.js';
+import { ah, HttpError, assertClinicAccess, assertPatientAccess, todayISO, addDays, NEXT_VISIT_DAYS, nullIfEmpty } from '../lib/util.js';
 import { requireStaff } from '../middleware/auth.js';
 import { getVisit, hydrateVisits, shapePatient } from '../lib/records.js';
 import { publish } from '../lib/live.js';
@@ -93,6 +93,7 @@ r.post('/', ah(async (req, res) => {
   if (!p) throw new HttpError(404, 'Patient not found');
   const clinicId = Number(b.clinic_id || p.clinic_id);
   await assertClinicAccess(req.user, clinicId);
+  await assertPatientAccess(req.user, p.clinic_id);
   const dup = await one(
     "SELECT token_no FROM visits WHERE patient_id = ? AND clinic_id = ? AND visit_date = ? AND status IN ('waiting','with_doctor')",
     [p.id, clinicId, todayISO()]);

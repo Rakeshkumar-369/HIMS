@@ -11,6 +11,7 @@ npm run setup                     # install server and client packages
 cp server/.env.example server/.env   # then put your MySQL password in it
 npm run db:reset                  # create database, tables and demo data
 npm run dev                       # API on :4000, app on http://localhost:5173
+                                  # (npm run dev:lan also opens it to phones on your Wi-Fi)
 ```
 
 | Demo login | |
@@ -34,7 +35,10 @@ Full step-by-step instructions for Windows/macOS are in **`docs/CareNest-HIMS-Lo
 - **Clinic mapping** — unique clinic names, per-clinic data, team (nurses/doctors), fee, and a colour theme per clinic (8 pastel themes, one click).
 - **Insights dashboard** — 1 week / 10 days / 1 month / 6 months / 1 year, per clinic or all: cases, age & gender, diagnoses, known conditions, income vs outflow, expense categories, medicines and lab investigations. Every chart has a table view.
 - **Accounts** — consultation fees counted automatically + quick income/expense entries.
-- **Patient portal** — Case ID + mobile login, view history and download/print the complete case sheet.
+- **Patient portal** — Case ID + mobile login, view history and download the complete case sheet as a PDF.
+- **Shared case IDs** — a patient registered at one of a doctor's clinics is found at the doctor's other clinics by their 9-digit Case ID, with full history.
+- **Download PDF** — every A4 sheet can be saved as a real PDF file (laptop and phone), besides printing.
+- **Dark mode** — Light / Dark / Same-as-device, one tap from the top bar; print sheets and PDFs always stay white.
 
 ## Project layout
 

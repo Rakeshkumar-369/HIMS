@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { Plus, Building2, MapPin, Phone, Users, Pencil, Crown, Trash2, UserPlus, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
-import { useFetch } from '../lib/hooks';
+import { useFetch, useMode } from '../lib/hooks';
 import { PageHeader, Modal, Field, Avatar, Segmented, Empty } from '../components/ui';
 import ThemePicker from '../components/ThemePicker';
 import { palette } from '../lib/themes';
@@ -90,6 +90,7 @@ function StaffPanel({ clinic }) {
 export default function Clinics() {
   const { clinicId, setClinicId, upsertClinic, refresh } = useAuth();
   const { data, reload } = useFetch('/clinics', []);
+  const { mode } = useMode();
   const [edit, setEdit] = useState(null);
   const saved = (c) => { upsertClinic(c); reload(true); refresh(); };
 
@@ -100,7 +101,7 @@ export default function Clinics() {
       {data && !data.length && <div className="card"><Empty icon={Building2} title="Create your first clinic" action={<button className="btn-primary" onClick={() => setEdit('new')}><Plus size={16} /> Add clinic</button>} /></div>}
       <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
         {data?.map((c) => {
-          const p = palette(c.theme);
+          const p = palette(c.theme, mode);
           const active = c.id === clinicId;
           return (
             <article key={c.id} className={clsx('card overflow-hidden transition', active && 'ring-2 ring-offset-2')} style={{ '--tw-ring-color': p[400] }}>

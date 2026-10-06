@@ -39,7 +39,7 @@ export default function CommandSearch({ open, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/25 p-4 pt-[12vh] backdrop-blur-[2px]" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-4 pt-[12vh] backdrop-blur-[2px]" onMouseDown={onClose}>
       <div className="animate-pop w-full max-w-xl overflow-hidden rounded-3xl bg-white shadow-lift" onMouseDown={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3 border-b border-line px-5">
           <Search size={20} className="text-brand-500" />
@@ -54,7 +54,7 @@ export default function CommandSearch({ open, onClose }) {
               className={clsx('flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left', i === idx && 'bg-brand-50')}>
               <Avatar name={p.full_name} className="size-10 text-xs" />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-semibold">{p.full_name} <span className="font-normal text-muted">· {ageSex(p)}</span></div>
+                <div className="truncate text-sm font-semibold">{p.full_name} <span className="font-normal text-muted">· {ageSex(p)}</span>{p.clinic_id !== clinicId && <span className="ml-1.5 rounded-full bg-sky-50 px-1.5 text-[11px] font-semibold text-sky-700">from {p.home_clinic}</span>}</div>
                 <div className="text-xs text-muted tabular">#{caseFmt(p.case_no)} · {p.phone || 'no phone'}{p.last_visit && ` · last seen ${fmtShort(p.last_visit)}`}</div>
               </div>
               {i === idx && <CornerDownLeft size={16} className="text-brand-500" />}

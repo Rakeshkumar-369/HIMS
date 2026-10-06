@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { UserRound, Palette, KeyRound, Keyboard } from 'lucide-react';
+import { UserRound, Palette, KeyRound, Keyboard, SunMoon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { PageHeader, Field } from '../components/ui';
 import { Section } from '../components/intake';
 import ThemePicker from '../components/ThemePicker';
+import { ModeSegmented } from '../components/ModeToggle';
 
 export default function Settings() {
   const { user, setUser, clinic, isDoctor, upsertClinic } = useAuth();
@@ -29,6 +30,10 @@ export default function Settings() {
   return (
     <div className="animate-in max-w-3xl space-y-5">
       <PageHeader title="Settings" subtitle="Your profile, security and appearance." />
+      <Section icon={SunMoon} title="Light / dark mode">
+        <p className="mb-4 text-sm text-muted">Dark mode is easier on the eyes in the evening clinic. This setting is saved on this device.</p>
+        <ModeSegmented />
+      </Section>
       {isDoctor && clinic && (
         <Section icon={Palette} title={`Colour theme · ${clinic.name}`}>
           <p className="mb-4 text-sm text-muted">Every clinic can have its own colour — a quick visual cue of where you're working. Changes apply instantly for everyone in this clinic.</p>

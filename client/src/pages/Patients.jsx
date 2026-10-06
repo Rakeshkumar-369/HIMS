@@ -14,7 +14,7 @@ export default function Patients() {
 
   return (
     <div className="animate-in">
-      <PageHeader eyebrow={clinic?.name} title="Patients" subtitle="Every case file of this clinic. Search by name, case ID or mobile."
+      <PageHeader eyebrow={clinic?.name} title="Patients" subtitle="Search by name, case ID or mobile. A 9-digit case ID also finds patients registered at your other clinics."
         actions={<Link to="/app/register" className="btn-primary"><UserPlus size={17} /> New case</Link>} />
       <div className="relative mb-5">
         <Search size={18} className="absolute top-1/2 left-4 -translate-y-1/2 text-muted" />
@@ -32,7 +32,7 @@ export default function Patients() {
               <Link to={`/app/patients/${p.id}`} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-5 py-3.5 transition hover:bg-brand-50/50 md:grid-cols-[2fr_1fr_1fr_1.4fr_1fr_24px]">
                 <div className="flex min-w-0 items-center gap-3">
                   <Avatar name={p.full_name} className="size-10 text-xs" />
-                  <div className="min-w-0"><div className="truncate font-semibold">{p.full_name}</div><div className="text-xs text-muted">{p.age} yrs · {p.gender}</div></div>
+                  <div className="min-w-0"><div className="truncate font-semibold">{p.full_name}</div><div className="text-xs text-muted">{p.age} yrs · {p.gender}{p.clinic_id !== clinicId && <span className="ml-1.5 rounded-full bg-sky-50 px-1.5 font-semibold text-sky-700">from {p.home_clinic}</span>}</div></div>
                 </div>
                 <span className="font-mono text-sm text-slate-600 max-md:hidden">{caseFmt(p.case_no)}</span>
                 <span className="text-sm text-slate-600 tabular max-md:hidden">{p.phone || '—'}</span>

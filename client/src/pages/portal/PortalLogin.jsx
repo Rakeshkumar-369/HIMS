@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { Wordmark } from '../../components/Brand';
+import ModeToggle from '../../components/ModeToggle';
 import { Field } from '../../components/ui';
 import { api, tokens } from '../../lib/api';
 
@@ -20,7 +21,8 @@ export default function PortalLogin() {
     } catch (err) { toast.error(err.message); } finally { setBusy(false); }
   };
   return (
-    <div className="grid min-h-dvh place-items-center px-5 py-10">
+    <div className="relative grid min-h-dvh place-items-center px-5 py-10">
+      <ModeToggle className="absolute top-4 right-4" />
       <div className="animate-in w-full max-w-md">
         <div className="mb-8 flex justify-center"><Wordmark /></div>
         <div className="card p-7 sm:p-8">

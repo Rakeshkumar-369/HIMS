@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { query, one, tx } from '../db.js';
-import { ah, HttpError, assertClinicAccess, generateCaseNo, nullIfEmpty } from '../lib/util.js';
+import { ah, HttpError, assertClinicAccess, assertPatientAccess, generateCaseNo, nullIfEmpty } from '../lib/util.js';
 import { requireStaff } from '../middleware/auth.js';
 import { shapePatient, patientRecord } from '../lib/records.js';
 import { insertVisit } from './visits.js';
@@ -21,15 +21,24 @@ r.get('/', ah(async (req, res) => {
   const clinicId = Number(req.query.clinicId);
   await assertClinicAccess(req.user, clinicId);
   const q = String(req.query.q || '').trim();
-  const params = [clinicId];
-  let where = 'p.clinic_id = ?';
+  // This clinic's own patients, plus anyone from a sister clinic who has already visited here
+  const params = [clinicId, clinicId];
+  let where = '(p.clinic_id = ? OR EXISTS (SELECT 1 FROM visits vv WHERE vv.patient_id = p.id AND vv.clinic_id = ?))';
   if (q) {
     where += ' AND (p.case_no LIKE ? OR p.full_name LIKE ? OR p.phone LIKE ?)';
     params.push(`${q}%`, `%${q}%`, `%${q}%`);
   }
+  // An exact 9-digit case ID also finds the file in any clinic of the same doctor
+  const caseNo = q.replace(/\s/g, '');
+  if (/^\d{9}$/.test(caseNo)) {
+    where = `(${where}) OR (p.case_no = ? AND p.clinic_id IN
+              (SELECT c2.id FROM clinics c1 JOIN clinics c2 ON c2.owner_id = c1.owner_id WHERE c1.id = ?))`;
+    params.push(caseNo, clinicId);
+  }
   const rows = await query(
-    `SELECT p.*, MAX(v.visit_date) AS last_visit, COUNT(v.id) AS visit_count
-       FROM patients p LEFT JOIN visits v ON v.patient_id = p.id AND v.status = 'completed'
+    `SELECT p.*, hc.name AS home_clinic, MAX(v.visit_date) AS last_visit, COUNT(v.id) AS visit_count
+       FROM patients p JOIN clinics hc ON hc.id = p.clinic_id
+       LEFT JOIN visits v ON v.patient_id = p.id AND v.status = 'completed'
       WHERE ${where} GROUP BY p.id
       ORDER BY ${q ? 'p.full_name' : 'COALESCE(MAX(v.visit_date), DATE(p.created_at)) DESC'}
       LIMIT ?`, [...params, Math.min(Number(req.query.limit) || 30, 200)]);
@@ -61,14 +70,14 @@ r.post('/', ah(async (req, res) => {
 r.get('/:id', ah(async (req, res) => {
   const rec = await patientRecord(Number(req.params.id), { includePrivate: req.user.role === 'doctor' });
   if (!rec) throw new HttpError(404, 'Patient not found');
-  await assertClinicAccess(req.user, rec.patient.clinic_id);
+  await assertPatientAccess(req.user, rec.patient.clinic_id);
   res.json(rec);
 }));
 
 r.patch('/:id', ah(async (req, res) => {
   const p = await one('SELECT clinic_id FROM patients WHERE id = ?', [Number(req.params.id)]);
   if (!p) throw new HttpError(404, 'Patient not found');
-  await assertClinicAccess(req.user, p.clinic_id);
+  await assertPatientAccess(req.user, p.clinic_id);
   const keys = PATIENT_FIELDS.filter((k) => k in req.body);
   const vals = patientValues(req.body).filter((_, i) => keys.includes(PATIENT_FIELDS[i]));
   if ('known_conditions' in req.body) { keys.push('known_conditions'); vals.push(JSON.stringify(req.body.known_conditions || [])); }

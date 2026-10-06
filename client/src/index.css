@@ -2,8 +2,11 @@
 
 /* Brand colours come from CSS variables that are rewritten at runtime
    (see src/lib/themes.js), so a clinic's theme switches instantly. */
-@theme inline {
+@theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@theme inline {
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
   --color-brand-200: var(--brand-200);
@@ -14,6 +17,9 @@
   --color-brand-700: var(--brand-700);
   --color-brand-800: var(--brand-800);
   --color-brand-900: var(--brand-900);
+}
+
+@theme {
   --color-ink: oklch(0.27 0.02 260);
   --color-muted: oklch(0.52 0.02 260);
   --color-line: oklch(0.92 0.008 260);
@@ -30,7 +36,51 @@
   --brand-400: oklch(0.77 0.115 165); --brand-500: oklch(0.68 0.125 165);
   --brand-600: oklch(0.57 0.12 165);  --brand-700: oklch(0.48 0.1 165);
   --brand-800: oklch(0.39 0.08 165);  --brand-900: oklch(0.31 0.06 165);
+  --page: oklch(0.985 0.004 260);
+  --grid: oklch(0.93 0.006 260);
+  --axis: oklch(0.55 0.02 260);
+  --hover: oklch(0.96 0.005 260);
+  /* validated categorical chart slots (light surface) */
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
   color-scheme: light;
+}
+
+/* ---------- Dark mode ----------
+   Everything inside the app re-maps the neutral + status scales; print pages
+   (.light-scope) keep the light values so A4 sheets always print on white. */
+:root[data-mode="dark"] {
+  --page: oklch(0.185 0.01 260);
+  color-scheme: dark;
+}
+:root[data-mode="dark"] #root > :not(.light-scope) {
+  color-scheme: dark;
+  color: var(--color-ink);
+  --color-white: oklch(0.235 0.012 260);
+  --color-ink: oklch(0.94 0.008 260);
+  --color-muted: oklch(0.72 0.015 260);
+  --color-line: oklch(0.34 0.014 260);
+  --color-slate-50: oklch(0.265 0.012 260);  --color-slate-100: oklch(0.29 0.013 260);
+  --color-slate-200: oklch(0.34 0.014 260);  --color-slate-300: oklch(0.43 0.015 260);
+  --color-slate-400: oklch(0.58 0.016 260);  --color-slate-500: oklch(0.68 0.016 260);
+  --color-slate-600: oklch(0.77 0.014 260);  --color-slate-700: oklch(0.84 0.012 260);
+  --color-slate-800: oklch(0.9 0.01 260);    --color-slate-900: oklch(0.95 0.008 260);
+  --color-amber-50: oklch(0.3 0.045 75);  --color-amber-100: oklch(0.34 0.06 75);  --color-amber-200: oklch(0.42 0.075 75);
+  --color-amber-300: oklch(0.52 0.09 75); --color-amber-400: oklch(0.7 0.13 75);   --color-amber-500: oklch(0.78 0.14 75);
+  --color-amber-600: oklch(0.82 0.13 75); --color-amber-700: oklch(0.85 0.11 75);  --color-amber-800: oklch(0.88 0.09 75); --color-amber-900: oklch(0.92 0.06 75);
+  --color-rose-50: oklch(0.29 0.05 15);   --color-rose-100: oklch(0.34 0.07 15);   --color-rose-200: oklch(0.42 0.09 15);
+  --color-rose-300: oklch(0.52 0.12 15);  --color-rose-400: oklch(0.68 0.15 15);   --color-rose-500: oklch(0.72 0.16 15);
+  --color-rose-600: oklch(0.78 0.13 15);  --color-rose-700: oklch(0.82 0.11 15);
+  --color-emerald-50: oklch(0.29 0.045 160); --color-emerald-100: oklch(0.34 0.06 160); --color-emerald-200: oklch(0.42 0.08 160);
+  --color-emerald-500: oklch(0.72 0.14 160); --color-emerald-600: oklch(0.78 0.13 160); --color-emerald-700: oklch(0.83 0.11 160);
+  --color-sky-50: oklch(0.29 0.045 235);  --color-sky-600: oklch(0.78 0.11 235);  --color-sky-700: oklch(0.83 0.09 235);
+  --color-violet-50: oklch(0.29 0.05 295); --color-violet-700: oklch(0.83 0.1 295);
+  --grid: oklch(0.32 0.012 260);
+  --axis: oklch(0.7 0.015 260);
+  --hover: oklch(0.28 0.012 260);
+  /* the same chart hues, stepped for the dark surface */
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 16px -4px rgb(0 0 0 / 0.35);
+  --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.3), 0 16px 40px -12px rgb(0 0 0 / 0.6);
 }
 
 @keyframes fade-up { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
@@ -43,7 +93,7 @@ body {
   background:
     radial-gradient(1200px 600px at 100% -10%, var(--brand-100), transparent 60%),
     radial-gradient(900px 500px at -10% 110%, var(--brand-50), transparent 60%),
-    oklch(0.985 0.004 260);
+    var(--page);
   background-attachment: fixed;
   min-height: 100dvh;
 }

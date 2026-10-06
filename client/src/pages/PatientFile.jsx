@@ -10,7 +10,7 @@ import { useFetch } from '../lib/hooks';
 import { PageLoader, Avatar, Modal, Field, Chips, StatusBadge } from '../components/ui';
 import { ConditionsInput } from '../components/intake';
 import VisitIntakeModal from '../components/VisitIntakeModal';
-import { ChartCard, ChartTooltip, Legend, SERIES, GRID, AXIS } from '../components/charts';
+import { ChartCard, ChartTooltip, Legend, SERIES, GRID, AXIS, SURFACE } from '../components/charts';
 import { caseFmt, fmtDate, fmtShort } from '../lib/format';
 import { BLOOD_GROUPS } from '../lib/constants';
 
@@ -110,7 +110,7 @@ export default function PatientFile() {
   const [openId, setOpenId] = useState(null);
   if (loading && !data) return <PageLoader />;
   if (!data) return null;
-  const { patient: p, visits } = data;
+  const { patient: p, visits, clinic: home } = data;
   const done = visits.filter((v) => v.status === 'completed');
   const trend = [...done].reverse().filter((v) => v.bp_systolic || v.weight_kg).map((v) => ({ date: v.visit_date, Systolic: v.bp_systolic, Diastolic: v.bp_diastolic, Weight: v.weight_kg }));
   const firstOpen = openId ?? visits[0]?.id;
@@ -121,7 +121,7 @@ export default function PatientFile() {
         <div className="flex flex-wrap items-center gap-5 bg-gradient-to-r from-brand-100 via-brand-50 to-white p-6">
           <Avatar name={p.full_name} className="size-16 bg-white text-xl" />
           <div className="min-w-0 flex-1">
-            <div className="font-mono text-xs font-bold tracking-widest text-brand-700">CASE #{caseFmt(p.case_no)}</div>
+            <div className="font-mono text-xs font-bold tracking-widest text-brand-700">CASE #{caseFmt(p.case_no)}{home.id !== clinicId && <span className="ml-2 rounded-full bg-sky-50 px-2 py-0.5 font-sans tracking-normal text-sky-700">Registered at {home.name}</span>}</div>
             <h1 className="truncate text-2xl font-extrabold">{p.full_name}</h1>
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
               <span>{p.age} yrs · {p.gender}</span>
@@ -161,8 +161,8 @@ export default function PatientFile() {
                   <XAxis dataKey="date" tickFormatter={fmtShort} tick={AXIS} axisLine={false} tickLine={false} minTickGap={24} />
                   <YAxis tick={AXIS} axisLine={false} tickLine={false} domain={['dataMin - 10', 'dataMax + 10']} />
                   <Tooltip content={<ChartTooltip labelFmt={fmtDate} />} cursor={{ stroke: GRID }} />
-                  <Line type="monotone" dataKey="Systolic" stroke={SERIES[0]} strokeWidth={2} dot={{ r: 4, strokeWidth: 2, stroke: '#fff', fill: SERIES[0] }} connectNulls />
-                  <Line type="monotone" dataKey="Diastolic" stroke={SERIES[1]} strokeWidth={2} dot={{ r: 4, strokeWidth: 2, stroke: '#fff', fill: SERIES[1] }} connectNulls />
+                  <Line type="monotone" dataKey="Systolic" stroke={SERIES[0]} strokeWidth={2} dot={{ r: 4, strokeWidth: 2, stroke: SURFACE, fill: SERIES[0] }} connectNulls />
+                  <Line type="monotone" dataKey="Diastolic" stroke={SERIES[1]} strokeWidth={2} dot={{ r: 4, strokeWidth: 2, stroke: SURFACE, fill: SERIES[1] }} connectNulls />
                 </LineChart>
               </ResponsiveContainer>
             </ChartCard>
@@ -173,7 +173,7 @@ export default function PatientFile() {
                   <XAxis dataKey="date" tickFormatter={fmtShort} tick={AXIS} axisLine={false} tickLine={false} minTickGap={24} />
                   <YAxis tick={AXIS} axisLine={false} tickLine={false} domain={['dataMin - 3', 'dataMax + 3']} />
                   <Tooltip content={<ChartTooltip labelFmt={fmtDate} fmt={(v) => `${v} kg`} />} cursor={{ stroke: GRID }} />
-                  <Line type="monotone" dataKey="Weight" stroke="var(--brand-600)" strokeWidth={2} dot={{ r: 4, strokeWidth: 2, stroke: '#fff', fill: 'var(--brand-600)' }} connectNulls />
+                  <Line type="monotone" dataKey="Weight" stroke="var(--brand-600)" strokeWidth={2} dot={{ r: 4, strokeWidth: 2, stroke: SURFACE, fill: 'var(--brand-600)' }} connectNulls />
                 </LineChart>
               </ResponsiveContainer>
             </ChartCard>

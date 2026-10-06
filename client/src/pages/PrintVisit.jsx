@@ -12,7 +12,7 @@ export default function PrintVisit() {
   const { visit, patient, clinic } = data;
   const { doctor_comment, ...safe } = visit; // eslint-disable-line no-unused-vars
   return (
-    <PrintFrame title={`${patient.full_name} · ${visit.visit_date}`} autoPrint>
+    <PrintFrame title={`${patient.full_name} · ${visit.visit_date}`} filename={`CaseSheet-${patient.case_no}-${visit.visit_date}`} autoPrint>
       <CaseSheet clinic={clinic} patient={patient} visits={[safe]} />
     </PrintFrame>
   );

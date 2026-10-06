@@ -314,12 +314,12 @@ function ConsultForm({ visitId }) {
           </Section>
         </div>
 
-        <section className="rounded-3xl border border-amber-200 bg-[linear-gradient(180deg,#fffbeb,#fef9c3aa)] p-5 sm:p-6">
+        <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5 sm:p-6">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-[13px] font-bold tracking-wide text-amber-800 uppercase"><Lock size={15} /> Private note to self</h2>
             <span className="text-xs font-medium text-amber-700">Never printed · hidden from nurse & patient</span>
           </div>
-          <textarea rows={2} className="w-full resize-y rounded-2xl border border-amber-200 bg-white/70 px-3.5 py-2.5 text-[15px] outline-none focus:ring-4 focus:ring-amber-100" placeholder="Review later: e.g. consider adding statin if LDL > 130" value={f.doctor_comment} onChange={set('doctor_comment')} />
+          <textarea rows={2} className="w-full resize-y rounded-2xl border border-amber-200 bg-white/60 px-3.5 py-2.5 text-[15px] outline-none focus:ring-4 focus:ring-amber-100" placeholder="Review later: e.g. consider adding statin if LDL > 130" value={f.doctor_comment} onChange={set('doctor_comment')} />
         </section>
       </div>
 

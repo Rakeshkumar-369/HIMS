@@ -3,9 +3,12 @@ import clsx from 'clsx';
 import { Table2, BarChart3 } from 'lucide-react';
 
 // Validated categorical slots (CVD-safe in this order). Single-series charts use the clinic's brand colour.
-export const SERIES = ['#2a78d6', '#eb6834', '#1baf7a'];
-export const GRID = 'oklch(0.93 0.006 260)';
-export const AXIS = { fontSize: 11, fill: 'oklch(0.55 0.02 260)' };
+// CSS variables so light and dark mode each get their own validated steps (see index.css).
+export const SERIES = ['var(--s1)', 'var(--s2)', 'var(--s3)'];
+export const GRID = 'var(--grid)';
+export const HOVER = 'var(--hover)';
+export const SURFACE = 'var(--color-white)';
+export const AXIS = { fontSize: 11, fill: 'var(--axis)' };
 
 export function ChartTooltip({ active, payload, label, fmt = (v) => v, labelFmt = (l) => l }) {
   if (!active || !payload?.length) return null;

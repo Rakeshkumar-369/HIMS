@@ -12,6 +12,7 @@ import { Wordmark } from './Brand';
 import { Avatar } from './ui';
 import ThemePicker from './ThemePicker';
 import CommandSearch from './CommandSearch';
+import ModeToggle from './ModeToggle';
 import { palette } from '../lib/themes';
 
 const NAV = [
@@ -151,8 +152,8 @@ export default function AppShell() {
 
       {/* Drawer (mobile) */}
       {drawer && (
-        <div className="fixed inset-0 z-50 bg-slate-900/25 backdrop-blur-[2px] lg:hidden" onClick={() => setDrawer(false)}>
-          <aside className="animate-in flex h-full w-80 max-w-[85vw] flex-col gap-6 bg-[oklch(0.985_0.004_260)] p-5" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] lg:hidden" onClick={() => setDrawer(false)}>
+          <aside className="animate-in flex h-full w-80 max-w-[85vw] flex-col gap-6 bg-[var(--page)] p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between"><Wordmark /><button className="btn-ghost p-2" onClick={() => setDrawer(false)}><X size={20} /></button></div>
             {navList}
             <div className="mt-auto">{userCard}</div>
@@ -170,6 +171,7 @@ export default function AppShell() {
             <Search size={16} /> <span className="flex-1 text-left">Find patient, case ID, phone…</span> <span className="kbd">Ctrl K</span>
           </button>
           <button onClick={() => setSearchOpen(true)} className="btn-ghost p-2 md:hidden" aria-label="Search"><Search size={20} /></button>
+          <ModeToggle />
           <div title={connected ? 'Live sync on — doctor & nurse screens update instantly' : 'Reconnecting…'}
             className={clsx('hidden items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold sm:flex', connected ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700')}>
             <span className={clsx('size-2 rounded-full', connected ? 'live-dot bg-emerald-500' : 'bg-amber-400')} />

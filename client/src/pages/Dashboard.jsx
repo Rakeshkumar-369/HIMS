@@ -5,14 +5,14 @@ import {
 } from 'recharts';
 import { Users, UserPlus, IndianRupee, TrendingDown, Wallet, Activity, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useFetch } from '../lib/hooks';
+import { useFetch, useMode } from '../lib/hooks';
 import { PageHeader, PageLoader, Segmented } from '../components/ui';
-import { ChartCard, ChartTooltip, Legend, RankBars, SERIES, GRID, AXIS } from '../components/charts';
+import { ChartCard, ChartTooltip, Legend, RankBars, SERIES, GRID, AXIS, HOVER, SURFACE } from '../components/charts';
 import { compactInr, inr, num, fmtShort, fmtDate } from '../lib/format';
 import { palette } from '../lib/themes';
 
 const RANGES = [{ value: '7d', label: '1 week' }, { value: '10d', label: '10 days' }, { value: '1m', label: '1 month' }, { value: '6m', label: '6 months' }, { value: '1y', label: '1 year' }];
-const INK = 'oklch(0.35 0.02 260)';
+const INK = 'var(--color-ink)';
 
 function Kpi({ icon: Icon, label, value, prev, cur, invert, sub }) {
   const delta = prev ? ((cur - prev) / prev) * 100 : null;
@@ -35,6 +35,7 @@ function Kpi({ icon: Icon, label, value, prev, cur, invert, sub }) {
 
 export default function Dashboard() {
   const { clinics, clinicId } = useAuth();
+  const { mode } = useMode();
   const [range, setRange] = useState('1m');
   const [scope, setScope] = useState(String(clinicId));
   const { data, loading } = useFetch(`/dashboard?range=${range}&clinicId=${scope}`, [range, scope]);
@@ -82,9 +83,9 @@ export default function Dashboard() {
                 <CartesianGrid vertical={false} stroke={GRID} />
                 <XAxis dataKey="date" tickFormatter={tickFmt} tick={AXIS} axisLine={false} tickLine={false} minTickGap={16} />
                 <YAxis tick={AXIS} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip content={<ChartTooltip labelFmt={labelFmt} />} cursor={{ fill: 'oklch(0.96 0.005 260)' }} />
-                <Bar dataKey="new_cases" name="New" stackId="a" fill={SERIES[0]} stroke="#fff" strokeWidth={1} />
-                <Bar dataKey="follow_ups" name="Follow-up" stackId="a" fill={SERIES[2]} radius={[4, 4, 0, 0]} stroke="#fff" strokeWidth={1} />
+                <Tooltip content={<ChartTooltip labelFmt={labelFmt} />} cursor={{ fill: HOVER }} />
+                <Bar dataKey="new_cases" name="New" stackId="a" fill={SERIES[0]} stroke={SURFACE} strokeWidth={1} />
+                <Bar dataKey="follow_ups" name="Follow-up" stackId="a" fill={SERIES[2]} radius={[4, 4, 0, 0]} stroke={SURFACE} strokeWidth={1} />
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
@@ -94,7 +95,7 @@ export default function Dashboard() {
               <div className="relative flex-1">
                 <ResponsiveContainer>
                   <PieChart>
-                    <Pie data={data.gender} dataKey="n" nameKey="name" innerRadius="62%" outerRadius="88%" paddingAngle={2} stroke="#fff" strokeWidth={2} cornerRadius={6} isAnimationActive={false}>
+                    <Pie data={data.gender} dataKey="n" nameKey="name" innerRadius="62%" outerRadius="88%" paddingAngle={2} stroke={SURFACE} strokeWidth={2} cornerRadius={6} isAnimationActive={false}>
                       {data.gender.map((g) => <Cell key={g.name} fill={genderColor[g.name]} />)}
                     </Pie>
                     <Tooltip content={<ChartTooltip fmt={num} />} />
@@ -125,7 +126,7 @@ export default function Dashboard() {
                 <CartesianGrid vertical={false} stroke={GRID} />
                 <XAxis dataKey="group" tick={AXIS} axisLine={false} tickLine={false} />
                 <YAxis tick={AXIS} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip content={<ChartTooltip labelFmt={(l) => `Age ${l}`} />} cursor={{ fill: 'oklch(0.96 0.005 260)' }} />
+                <Tooltip content={<ChartTooltip labelFmt={(l) => `Age ${l}`} />} cursor={{ fill: HOVER }} />
                 {['Male', 'Female', 'Other'].map((g) => <Bar key={g} dataKey={g} fill={genderColor[g]} radius={[4, 4, 0, 0]} maxBarSize={28} />)}
               </BarChart>
             </ResponsiveContainer>
@@ -144,7 +145,7 @@ export default function Dashboard() {
                 <CartesianGrid vertical={false} stroke={GRID} />
                 <XAxis dataKey="date" tickFormatter={finTick} tick={AXIS} axisLine={false} tickLine={false} minTickGap={16} />
                 <YAxis tick={AXIS} axisLine={false} tickLine={false} tickFormatter={compactInr} />
-                <Tooltip content={<ChartTooltip labelFmt={finLabel} fmt={inr} />} cursor={{ fill: 'oklch(0.96 0.005 260)' }} />
+                <Tooltip content={<ChartTooltip labelFmt={finLabel} fmt={inr} />} cursor={{ fill: HOVER }} />
                 <Bar dataKey="income" name="Income" fill={SERIES[2]} radius={[4, 4, 0, 0]} maxBarSize={22} />
                 <Bar dataKey="expense" name="Outflow" fill={SERIES[1]} radius={[4, 4, 0, 0]} maxBarSize={22} />
                 <Line dataKey="net" name="Net" stroke={INK} strokeWidth={2} dot={false} type="monotone" />
@@ -177,7 +178,7 @@ export default function Dashboard() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {data.clinics.map((c) => (
                 <div key={c.id} className="flex items-center gap-3 rounded-2xl border border-line p-4">
-                  <span className="size-10 shrink-0 rounded-2xl" style={{ background: `linear-gradient(135deg, ${palette(c.theme)[200]}, ${palette(c.theme)[500]})` }} />
+                  <span className="size-10 shrink-0 rounded-2xl" style={{ background: `linear-gradient(135deg, ${palette(c.theme, mode)[200]}, ${palette(c.theme, mode)[500]})` }} />
                   <div className="min-w-0 flex-1"><div className="truncate font-semibold">{c.name}</div><div className="text-sm text-muted tabular">{num(c.cases)} cases · {compactInr(c.fees)} fees</div></div>
                 </div>
               ))}
