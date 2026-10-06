@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { query, one } from '../db.js';
 import { ah, HttpError, assertClinicAccess, todayISO, addDays } from '../lib/util.js';
-import { requireStaff } from '../middleware/auth.js';
+import { requireStaff, idParam } from '../middleware/auth.js';
 
 const r = Router();
 r.use(requireStaff('doctor'));
+r.param('id', idParam);
 
 r.get('/', ah(async (req, res) => {
   const clinicId = Number(req.query.clinicId);

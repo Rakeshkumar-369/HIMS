@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { query, one, tx } from '../db.js';
 import { ah, HttpError, assertClinicAccess, assertPatientAccess, todayISO, addDays, NEXT_VISIT_DAYS, nullIfEmpty } from '../lib/util.js';
-import { requireStaff } from '../middleware/auth.js';
+import { requireStaff, idParam } from '../middleware/auth.js';
 import { getVisit, hydrateVisits, shapePatient } from '../lib/records.js';
 import { publish } from '../lib/live.js';
 
@@ -35,7 +35,8 @@ async function loadForStaff(req, id) {
   return v;
 }
 
-r.use(requireStaff());
+r.use(requireStaff('doctor', 'nurse'));
+r.param('id', idParam);
 
 // ---- Day view ----------------------------------------------------------
 r.get('/queue', ah(async (req, res) => {
@@ -126,8 +127,15 @@ r.patch('/:id', ah(async (req, res) => {
 r.post('/:id/call', ah(async (req, res) => {
   const v = await loadForStaff(req, Number(req.params.id));
   if (!['waiting', 'with_doctor'].includes(v.status)) throw new HttpError(400, 'This visit is already closed');
-  await query("UPDATE visits SET status = 'with_doctor', called_at = NOW(), doctor_id = ? WHERE id = ?",
-    [req.body.doctor_id || (req.user.role === 'doctor' ? req.user.id : null), v.id]);
+  let doctorId = req.user.role === 'doctor' ? req.user.id : null;
+  if (req.body.doctor_id) {
+    // only a doctor of this clinic can be chosen
+    const ok = await one("SELECT 1 AS ok FROM clinic_members m JOIN users u ON u.id = m.user_id WHERE m.clinic_id = ? AND u.id = ? AND u.role = 'doctor'",
+      [v.clinic_id, Number(req.body.doctor_id)]);
+    if (!ok) throw new HttpError(400, 'Choose a doctor of this clinic');
+    doctorId = Number(req.body.doctor_id);
+  }
+  await query("UPDATE visits SET status = 'with_doctor', called_at = NOW(), doctor_id = ? WHERE id = ?", [doctorId, v.id]);
   publish(v.clinic_id, 'queue', { type: 'called', visitId: v.id });
   publish(v.clinic_id, 'display', { visitId: v.id });
   res.json({ ok: true });

@@ -6,6 +6,8 @@
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS sessions;
+DROP TABLE IF EXISTS audit_logs;
 DROP TABLE IF EXISTS prescriptions;
 DROP TABLE IF EXISTS visit_lab_tests;
 DROP TABLE IF EXISTS visits;
@@ -18,21 +20,30 @@ DROP TABLE IF EXISTS users;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ---------------------------------------------------------------------
--- Staff accounts (doctors & nurses). Patients log in separately.
+-- Accounts: platform admins (the software team), doctors and nurses.
+-- Patients log in separately with Case ID + mobile.
 -- ---------------------------------------------------------------------
 CREATE TABLE users (
-  id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  role            ENUM('doctor','nurse') NOT NULL,
-  full_name       VARCHAR(120) NOT NULL,
-  email           VARCHAR(160) NOT NULL UNIQUE,
-  phone           VARCHAR(20),
-  password_hash   VARCHAR(100) NOT NULL,
-  qualification   VARCHAR(160),          -- e.g. "MBBS, MD (General Medicine)"
-  registration_no VARCHAR(60),           -- medical council reg. no. (printed on sheet)
-  specialization  VARCHAR(120),
-  is_active       TINYINT(1) NOT NULL DEFAULT 1,
-  created_by      INT UNSIGNED NULL,     -- doctor who created a nurse account
-  created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  id                 INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  role               ENUM('admin','doctor','nurse') NOT NULL,
+  full_name          VARCHAR(120) NOT NULL,
+  email              VARCHAR(160) NOT NULL UNIQUE,
+  phone              VARCHAR(20),
+  address            VARCHAR(255),
+  city               VARCHAR(80),
+  password_hash      VARCHAR(100) NOT NULL,
+  qualification      VARCHAR(160),          -- e.g. "MBBS, MD (General Medicine)"
+  registration_no    VARCHAR(60),           -- medical council reg. no. (printed on sheet)
+  specialization     VARCHAR(120),
+  max_clinics        TINYINT UNSIGNED NOT NULL DEFAULT 0,   -- clinics a doctor may own (set by admin)
+  is_active          TINYINT(1) NOT NULL DEFAULT 1,
+  must_change_password TINYINT(1) NOT NULL DEFAULT 0,
+  token_version      INT UNSIGNED NOT NULL DEFAULT 0,       -- bump to sign the user out everywhere
+  failed_logins      TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  locked_until       DATETIME NULL,
+  last_login_at      DATETIME NULL,
+  created_by         INT UNSIGNED NULL,
+  created_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------------------
@@ -85,6 +96,8 @@ CREATE TABLE patients (
   known_conditions   TEXT,                            -- JSON array: ["Hypertension","Diabetes"]
   allergies          VARCHAR(255),
   habits             VARCHAR(255),                    -- smoking / alcohol etc.
+  portal_failed      TINYINT UNSIGNED NOT NULL DEFAULT 0,  -- patient-portal lockout
+  portal_locked_until DATETIME NULL,
   created_by         INT UNSIGNED NULL,
   created_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_pat_clinic (clinic_id),
@@ -185,4 +198,38 @@ CREATE TABLE transactions (
   created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_txn (clinic_id, txn_date),
   CONSTRAINT fk_txn_clinic FOREIGN KEY (clinic_id) REFERENCES clinics(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------
+-- Server-side sessions: a signed cookie is only valid while its row exists,
+-- so signing out, password changes and deactivation end sessions at once.
+-- ---------------------------------------------------------------------
+CREATE TABLE sessions (
+  id          CHAR(43) PRIMARY KEY,
+  kind        ENUM('staff','patient') NOT NULL,
+  subject_id  INT UNSIGNED NOT NULL,
+  ip          VARCHAR(64),
+  user_agent  VARCHAR(255),
+  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  expires_at  DATETIME NOT NULL,
+  INDEX idx_sess_subject (kind, subject_id),
+  INDEX idx_sess_exp (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------
+-- Security audit trail (logins, admin actions, record access).
+-- Keep at least 180 days.
+-- ---------------------------------------------------------------------
+CREATE TABLE audit_logs (
+  id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  actor_type  ENUM('admin','doctor','nurse','patient','anonymous') NOT NULL,
+  actor_id    INT UNSIGNED NULL,
+  action      VARCHAR(60) NOT NULL,
+  entity      VARCHAR(40),
+  entity_id   VARCHAR(40),
+  ip          VARCHAR(64),
+  detail      VARCHAR(255),
+  INDEX idx_audit_at (at),
+  INDEX idx_audit_actor (actor_type, actor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

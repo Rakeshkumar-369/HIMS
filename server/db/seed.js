@@ -94,10 +94,13 @@ function vitalsFor(age, gender, d) {
 const conn = await pool.getConnection();
 try {
   console.log('Seeding demo data…');
-  const hash = await bcrypt.hash('demo123', 10);
+  const hash = await bcrypt.hash('Demo@123', 12);
+  await conn.query(
+    "INSERT INTO users (role, full_name, email, phone, password_hash) VALUES ('admin','CareNest Support','admin@carenest.app','9876500000',?)",
+    [await bcrypt.hash('Admin@123', 12)]);
   const [doc] = await conn.query(
-    `INSERT INTO users (role, full_name, email, phone, password_hash, qualification, registration_no, specialization)
-     VALUES ('doctor','Dr. Ananya Rao','doctor@demo.com','9876500001',?,'MBBS, MD (General Medicine)','KMC 104528','Family Physician')`, [hash]);
+    `INSERT INTO users (role, full_name, email, phone, address, city, password_hash, qualification, registration_no, specialization, max_clinics)
+     VALUES ('doctor','Dr. Ananya Rao','doctor@demo.com','9876500001','12, 2nd Cross, MG Road','Bengaluru',?,'MBBS, MD (General Medicine)','KMC 104528','Family Physician',3)`, [hash]);
   const doctorId = doc.insertId;
   const [n1] = await conn.query("INSERT INTO users (role, full_name, email, phone, password_hash, created_by) VALUES ('nurse','Sr. Priya Thomas','nurse@demo.com','9876500002',?,?)", [hash, doctorId]);
   const [n2] = await conn.query("INSERT INTO users (role, full_name, email, phone, password_hash, created_by) VALUES ('nurse','Sr. Meena Pillai','nurse2@demo.com','9876500003',?,?)", [hash, doctorId]);
@@ -230,9 +233,10 @@ try {
   const [[{ case_no }]] = await conn.query('SELECT case_no FROM patients WHERE id = ?', [demo.id]);
 
   console.log(`✔ Seeded ${totalPatients} patients and ${totalVisits} visits across ${clinics.length} clinics.\n`);
-  console.log('  Doctor login  : doctor@demo.com / demo123');
-  console.log('  Nurse login   : nurse@demo.com  / demo123   (Sunrise Family Clinic)');
-  console.log('  Nurse login   : nurse2@demo.com / demo123   (Green Valley Health Centre)');
+  console.log('  Super admin   : admin@carenest.app / Admin@123');
+  console.log('  Doctor login  : doctor@demo.com / Demo@123');
+  console.log('  Nurse login   : nurse@demo.com  / Demo@123   (Sunrise Family Clinic)');
+  console.log('  Nurse login   : nurse2@demo.com / Demo@123   (Green Valley Health Centre)');
   console.log(`  Patient portal: Case ID ${case_no} + mobile 9000000001`);
 } finally {
   conn.release();

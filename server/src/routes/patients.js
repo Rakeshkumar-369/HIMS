@@ -1,13 +1,16 @@
 import { Router } from 'express';
 import { query, one, tx } from '../db.js';
 import { ah, HttpError, assertClinicAccess, assertPatientAccess, generateCaseNo, nullIfEmpty } from '../lib/util.js';
-import { requireStaff } from '../middleware/auth.js';
+import { requireStaff, idParam } from '../middleware/auth.js';
 import { shapePatient, patientRecord } from '../lib/records.js';
 import { insertVisit } from './visits.js';
 import { publish } from '../lib/live.js';
+import { likeEscape } from '../lib/security.js';
+import { audit } from '../lib/audit.js';
 
 const r = Router();
-r.use(requireStaff());
+r.use(requireStaff('doctor', 'nurse'));
+r.param('id', idParam);
 
 const PATIENT_FIELDS = ['full_name', 'gender', 'dob', 'age_years', 'phone', 'address', 'blood_group', 'guardian_name',
   'emergency_phone', 'occupation', 'allergies', 'habits'];
@@ -26,7 +29,8 @@ r.get('/', ah(async (req, res) => {
   let where = '(p.clinic_id = ? OR EXISTS (SELECT 1 FROM visits vv WHERE vv.patient_id = p.id AND vv.clinic_id = ?))';
   if (q) {
     where += ' AND (p.case_no LIKE ? OR p.full_name LIKE ? OR p.phone LIKE ?)';
-    params.push(`${q}%`, `%${q}%`, `%${q}%`);
+    const e = likeEscape(q);
+    params.push(`${e}%`, `%${e}%`, `%${e}%`);
   }
   // An exact 9-digit case ID also finds the file in any clinic of the same doctor
   const caseNo = q.replace(/\s/g, '');
@@ -71,6 +75,7 @@ r.get('/:id', ah(async (req, res) => {
   const rec = await patientRecord(Number(req.params.id), { includePrivate: req.user.role === 'doctor' });
   if (!rec) throw new HttpError(404, 'Patient not found');
   await assertPatientAccess(req.user, rec.patient.clinic_id);
+  await audit(req, 'patient_record_viewed', { entity: 'patient', entityId: rec.patient.id });
   res.json(rec);
 }));
 

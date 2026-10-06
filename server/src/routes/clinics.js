@@ -2,7 +2,9 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { pool, query, one, tx } from '../db.js';
 import { ah, HttpError, assertClinicAccess } from '../lib/util.js';
-import { requireStaff } from '../middleware/auth.js';
+import { audit } from '../lib/audit.js';
+import { assertStrongPassword } from '../lib/security.js';
+import { requireStaff, idParam } from '../middleware/auth.js';
 
 const r = Router();
 export const THEMES = ['mint', 'lavender', 'peach', 'sky', 'rose', 'sage', 'butter', 'ocean'];
@@ -25,7 +27,9 @@ async function assertOwner(user, clinicId) {
   if (c.owner_id !== user.id) throw new HttpError(403, 'Only the clinic owner can do this');
 }
 
-r.use(requireStaff());
+r.use(requireStaff('doctor', 'nurse'));
+r.param('id', idParam);
+r.param('userId', idParam);
 
 r.get('/', ah(async (req, res) => {
   res.json(await query(
@@ -41,6 +45,10 @@ r.post('/', requireStaff('doctor'), ah(async (req, res) => {
   if (!b.name?.trim()) throw new HttpError(400, 'Clinic name is required');
   if (await one('SELECT id FROM clinics WHERE name = ?', [b.name.trim()])) throw new HttpError(409, 'This clinic name is already taken — names must be unique');
   if (b.theme && !THEMES.includes(b.theme)) throw new HttpError(400, 'Unknown theme');
+  const me = await one('SELECT max_clinics, (SELECT COUNT(*) FROM clinics WHERE owner_id = ?) AS owned FROM users WHERE id = ?', [req.user.id, req.user.id]);
+  if (me.owned >= me.max_clinics) {
+    throw new HttpError(403, `Your account allows ${me.max_clinics} clinic(s). Please contact the CareNest team to add more.`);
+  }
   const id = await tx(async (c) => {
     const [cl] = await c.query(
       `INSERT INTO clinics (owner_id, name, code, tagline, address, city, phone, email, registration_no, timings, consultation_fee, theme)
@@ -85,18 +93,22 @@ r.get('/:id/staff', ah(async (req, res) => {
 r.post('/:id/staff', requireStaff('doctor'), ah(async (req, res) => {
   const id = Number(req.params.id);
   await assertOwner(req.user, id);
-  const { full_name, email, phone, password, role = 'nurse' } = req.body;
-  if (!email) throw new HttpError(400, 'Email is required');
-  let user = await one('SELECT id FROM users WHERE email = ?', [email]);
+  const { full_name, phone, password, role = 'nurse' } = req.body;
+  const email = String(req.body.email || '').trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(email)) throw new HttpError(400, 'A valid email is required');
+  let user = await one('SELECT id, role FROM users WHERE LOWER(email) = ?', [email]);
+  if (user?.role === 'admin') throw new HttpError(400, 'This account cannot be added to a clinic');
   if (!user) {
-    if (!full_name || !password) throw new HttpError(400, 'Name and a temporary password are required for a new account');
-    if (password.length < 6) throw new HttpError(400, 'Password must be at least 6 characters');
+    if (!full_name?.trim()) throw new HttpError(400, 'Name and a temporary password are required for a new account');
+    assertStrongPassword(password);
+    // New staff must choose their own password at first sign-in; associate doctors cannot open clinics of their own
     const [ins] = await pool.query(
-      'INSERT INTO users (role, full_name, email, phone, password_hash, created_by) VALUES (?,?,?,?,?,?)',
-      [role === 'doctor' ? 'doctor' : 'nurse', full_name, email, phone || null, await bcrypt.hash(password, 10), req.user.id]);
+      'INSERT INTO users (role, full_name, email, phone, password_hash, must_change_password, max_clinics, created_by) VALUES (?,?,?,?,?,1,0,?)',
+      [role === 'doctor' ? 'doctor' : 'nurse', full_name.trim(), email, phone || null, await bcrypt.hash(password, 12), req.user.id]);
     user = { id: ins.insertId };
   }
   await query('INSERT IGNORE INTO clinic_members (clinic_id, user_id) VALUES (?,?)', [id, user.id]);
+  await audit(req, 'staff_added', { entity: 'clinic', entityId: id, detail: `user ${user.id}` });
   res.status(201).json({ ok: true });
 }));
 
@@ -105,6 +117,7 @@ r.delete('/:id/staff/:userId', requireStaff('doctor'), ah(async (req, res) => {
   await assertOwner(req.user, id);
   if (Number(req.params.userId) === req.user.id) throw new HttpError(400, 'You cannot remove yourself from your own clinic');
   await query('DELETE FROM clinic_members WHERE clinic_id = ? AND user_id = ?', [id, Number(req.params.userId)]);
+  await audit(req, 'staff_removed', { entity: 'clinic', entityId: id, detail: `user ${req.params.userId}` });
   res.json({ ok: true });
 }));
 

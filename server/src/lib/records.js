@@ -28,8 +28,8 @@ export async function hydrateVisits(visits, { includePrivate = false } = {}) {
 
 const VISIT_SELECT = `
   SELECT v.*, d.full_name AS doctor_name, d.qualification AS doctor_qualification,
-         d.registration_no AS doctor_registration_no
-    FROM visits v LEFT JOIN users d ON d.id = v.doctor_id`;
+         d.registration_no AS doctor_registration_no, c.name AS clinic_name
+    FROM visits v LEFT JOIN users d ON d.id = v.doctor_id JOIN clinics c ON c.id = v.clinic_id`;
 
 export async function getVisit(id, opts) {
   const v = await one(`${VISIT_SELECT} WHERE v.id = ?`, [id]);
