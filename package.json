@@ -2,7 +2,7 @@
   "name": "carenest-hims",
   "version": "1.0.0",
   "private": true,
-  "description": "CareNest \u2014 Hospital Information Management System for small clinics (Module 1: Doctor \u21c4 Nurse case flow)",
+  "description": "CareNest — Hospital Information Management System for small clinics (Module 1: Doctor ⇄ Nurse case flow)",
   "scripts": {
     "setup": "npm install --prefix server && npm install --prefix client",
     "db:reset": "npm run db:reset --prefix server",
@@ -10,7 +10,10 @@
     "dev": "node dev.js",
     "build": "npm run build --prefix client",
     "start": "npm start --prefix server",
-    "dev:lan": "node dev.js --lan"
+    "dev:lan": "node dev.js --lan",
+    "secret": "npm run secret --prefix server",
+    "admin:create": "npm run admin:create --prefix server --",
+    "lint": "npm run lint --prefix server && npm run lint --prefix client"
   },
   "engines": {
     "node": ">=20"
