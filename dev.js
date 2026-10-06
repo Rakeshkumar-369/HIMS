@@ -2,11 +2,14 @@
 import { spawn } from 'node:child_process';
 
 const isWin = process.platform === 'win32';
+// `npm run dev:lan` also exposes the web app on your Wi-Fi so the doctor's phone can open it.
+const lan = process.argv.includes('--lan');
 const procs = [
   ['api', '\x1b[32m', 'server'],
   ['web', '\x1b[35m', 'client'],
 ].map(([name, color, dir]) => {
-  const p = spawn(isWin ? 'npm.cmd' : 'npm', ['run', 'dev', '--prefix', dir], { shell: isWin });
+  const args = ['run', 'dev', '--prefix', dir, ...(lan && dir === 'client' ? ['--', '--host'] : [])];
+  const p = spawn(isWin ? 'npm.cmd' : 'npm', args, { shell: isWin });
   const tag = `${color}[${name}]\x1b[0m `;
   const pipe = (stream, out) => stream.on('data', (d) => out.write(d.toString().split('\n').filter(Boolean).map((l) => tag + l).join('\n') + '\n'));
   pipe(p.stdout, process.stdout);
