@@ -26,5 +26,6 @@ export default [
       'no-unused-vars': ['error', { varsIgnorePattern: '^_', argsIgnorePattern: '^_', ignoreRestSiblings: true }],
     },
   },
-  { files: ['public/**/*.js'], languageOptions: { sourceType: 'script' } },
+  { files: ['public/mode.js'], languageOptions: { sourceType: 'script' } },
+  { files: ['public/sw.js'], languageOptions: { sourceType: 'script', globals: globals.serviceworker } },
 ];

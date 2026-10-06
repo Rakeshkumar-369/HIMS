@@ -113,7 +113,7 @@ export default function NewCase() {
         {/* Sticky action panel */}
         <aside className="xl:sticky xl:top-24 xl:self-start">
           <div className="card overflow-hidden">
-            <div className="bg-gradient-to-br from-brand-100 to-brand-50 p-5">
+            <div className="bg-gradient-to-br from-brand-100 to-brand-50 p-5 max-xl:hidden">
               <div className="text-xs font-bold tracking-wider text-brand-700 uppercase">Preview</div>
               <div className="mt-2 truncate text-xl font-extrabold">{p.full_name || 'New patient'}</div>
               <div className="mt-1 text-sm text-slate-600">
@@ -128,14 +128,27 @@ export default function NewCase() {
                 <Toggle checked={visit.priority} onChange={(v) => setVisit({ ...visit, priority: v })}
                   label={<span className="flex items-center gap-1.5"><Siren size={15} className={visit.priority ? 'text-rose-600' : 'text-muted'} /> Emergency — move to top</span>} />
               </div>
-              <button className="btn-primary w-full py-3.5 text-[15px]" disabled={!valid || busy} onClick={() => submit(true)}>
+              <button className="btn-primary w-full py-3.5 text-[15px] max-xl:hidden" disabled={!valid || busy} onClick={() => submit(true)}>
                 <CheckCircle2 size={18} /> {busy ? 'Saving…' : 'Register & add to queue'}
               </button>
               <button className="btn-ghost w-full" disabled={!valid || busy} onClick={() => submit(false)}>Save case file only</button>
-              <p className="text-center text-xs text-muted"><span className="kbd">Ctrl</span> + <span className="kbd">Enter</span> to register</p>
+              <p className="text-center text-xs text-muted max-xl:hidden"><span className="kbd">Ctrl</span> + <span className="kbd">Enter</span> to register</p>
             </div>
           </div>
         </aside>
+      </div>
+
+      {/* Phones & tablets: the main action is always one tap away */}
+      <div className="no-print fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.25rem)] z-20 border-t border-line/70 bg-white/90 px-4 py-3 backdrop-blur-xl lg:bottom-0 lg:left-72 xl:hidden">
+        <div className="mx-auto flex max-w-3xl items-center gap-3">
+          <div className="min-w-0 flex-1 max-sm:hidden">
+            <div className="truncate text-sm font-bold">{p.full_name || 'New patient'}</div>
+            <div className="truncate text-xs text-muted">{valid ? 'Ready to register' : 'Name, gender and age are needed'}</div>
+          </div>
+          <button className="btn-primary flex-1 py-3 sm:flex-none sm:px-6" disabled={!valid || busy} onClick={() => submit(true)}>
+            <CheckCircle2 size={18} /> {busy ? 'Saving…' : valid ? 'Register & add to queue' : 'Fill name, gender & age'}
+          </button>
+        </div>
       </div>
     </div>
   );

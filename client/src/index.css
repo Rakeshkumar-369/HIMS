@@ -25,7 +25,7 @@
   --color-line: oklch(0.92 0.008 260);
   --shadow-soft: 0 1px 2px rgb(16 24 40 / 0.04), 0 4px 16px -4px rgb(16 24 40 / 0.06);
   --shadow-lift: 0 2px 4px rgb(16 24 40 / 0.04), 0 16px 40px -12px rgb(16 24 40 / 0.14);
-  --animate-in: fade-up 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-in: fade-up 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) backwards; /* backwards: no transform remains afterwards, so fixed bars stay pinned to the screen */
   --animate-pop: pop 0.25s cubic-bezier(0.2, 0.7, 0.2, 1.3) both;
 }
 
@@ -87,7 +87,23 @@
 @keyframes pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
 @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--brand-500) 55%, transparent); } 100% { box-shadow: 0 0 0 12px transparent; } }
 
-html { -webkit-tap-highlight-color: transparent; }
+html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+
+/* ---------- Phones ---------- */
+@media (max-width: 639px) {
+  /* 16px+ inputs stop iOS Safari from zooming in when a field is tapped */
+  input, select, textarea { font-size: 16px !important; }
+  /* comfortable thumb-sized targets */
+  .chip { min-height: 38px; }
+}
+@media (hover: none) {
+  .btn:active, .chip:active { transform: scale(0.97); }
+}
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+.animate-sheet { animation: sheet-up 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 body {
   @apply font-sans text-ink antialiased;
   background:

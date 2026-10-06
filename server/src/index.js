@@ -93,7 +93,12 @@ app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
 // In production, serve the built React app from the same port.
 const dist = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../client/dist');
 if (fs.existsSync(dist)) {
-  app.use(express.static(dist, { maxAge: '7d', index: false }));
+  app.use(express.static(dist, {
+    index: false,
+    maxAge: '7d',
+    // the service worker and manifest must always be re-checked so app updates reach installed phones
+    setHeaders: (res, file) => { if (/(sw\.js|manifest\.webmanifest|mode\.js)$/.test(file)) res.setHeader('Cache-Control', 'no-cache'); },
+  }));
   app.get(/^\/(?!api).*/, (_req, res) => res.sendFile(path.join(dist, 'index.html')));
 }
 

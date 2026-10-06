@@ -158,6 +158,7 @@ function ConsultEditor({ data }) {
   const [f, setF] = useState(() => initialForm(v, clinic, draftKey));
   const [busy, setBusy] = useState(false);
   const [historyAt, setHistoryAt] = useState(null);
+  const [pane, setPane] = useState('patient'); // phones & tablets show one pane at a time
 
   // auto-save a draft for this browser tab (cleared on completion and at sign-out)
   useEffect(() => { if (v.status !== 'completed') sessionStorage.setItem(draftKey, JSON.stringify(f)); }, [f, v.status, draftKey]);
@@ -191,9 +192,28 @@ function ConsultEditor({ data }) {
 
   const bmi = v.bmi;
   return (
-    <div className="animate-in grid gap-5 xl:grid-cols-[380px_1fr]">
+    <div className="animate-in grid gap-5 xl:grid-cols-[380px_1fr] [&>*]:min-w-0">
+      {/* Phone / tablet: patient ⇄ consultation switch with a compact summary */}
+      <div className="sticky top-16 z-10 -mx-4 -mt-5 space-y-2 border-b border-line/60 bg-[var(--page)]/90 px-4 pt-3 pb-3 backdrop-blur-xl sm:-mx-6 sm:px-6 xl:hidden">
+        <div className="flex items-center gap-3">
+          <Avatar name={p.full_name} className="size-10 text-xs" />
+          <div className="min-w-0 flex-1">
+            <div className="truncate font-bold">{p.full_name} <span className="text-sm font-medium text-muted">· {p.age}y {p.gender?.[0]}</span></div>
+            <div className="truncate text-xs text-muted">
+              Token #{v.token_no}{v.bp_systolic ? ` · BP ${v.bp_systolic}/${v.bp_diastolic}` : ''}{v.temperature ? ` · ${v.temperature}°F` : ''}{p.allergies ? ` · ⚠ ${p.allergies}` : ''}
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 rounded-2xl border border-line bg-white p-1">
+          {[['patient', 'Patient & history'], ['consult', 'Consultation']].map(([k, label]) => (
+            <button key={k} onClick={() => { setPane(k); window.scrollTo({ top: 0 }); }}
+              className={clsx('rounded-xl py-2 text-sm font-semibold transition', pane === k ? 'bg-brand-500 text-white shadow-sm' : 'text-muted')}>{label}</button>
+          ))}
+        </div>
+      </div>
+
       {/* ---------- Patient panel ---------- */}
-      <aside className="space-y-4 xl:sticky xl:top-24 xl:max-h-[calc(100dvh-7rem)] xl:self-start xl:overflow-y-auto xl:pr-1 scrollbar-thin">
+      <aside className={clsx('scrollbar-thin space-y-4 xl:sticky xl:top-24 xl:max-h-[calc(100dvh-7rem)] xl:self-start xl:overflow-y-auto xl:pr-1', pane !== 'patient' && 'max-xl:hidden')}>
         <div className="card overflow-hidden">
           <div className="bg-gradient-to-br from-brand-100 to-brand-50 p-5">
             <div className="flex items-center gap-3">
@@ -255,7 +275,7 @@ function ConsultEditor({ data }) {
       </aside>
 
       {/* ---------- Consultation form ---------- */}
-      <div className="space-y-5 pb-24">
+      <div className={clsx('space-y-5 pb-24', pane !== 'consult' && 'max-xl:hidden')}>
         <Section icon={Eye} title="Observations / examination">
           <textarea rows={3} className="input" placeholder="e.g. Throat congested, chest clear, no pedal oedema…" value={f.observations} onChange={set('observations')} />
         </Section>
@@ -333,15 +353,22 @@ function ConsultEditor({ data }) {
       </Modal>
 
       {/* Sticky action bar */}
-      <div className="no-print fixed inset-x-0 bottom-[68px] z-20 border-t border-line/70 bg-white/85 backdrop-blur-xl lg:bottom-0 lg:left-72">
+      <div className="no-print fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.25rem)] z-20 border-t border-line/70 bg-white/90 backdrop-blur-xl lg:bottom-0 lg:left-72">
         <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-4 py-3 sm:px-6">
           <div className="hidden min-w-0 flex-1 text-sm sm:block">
             <span className="font-bold">{p.full_name}</span>
             <span className="text-muted"> · {f.prescriptions.length} meds · {f.lab_tests.length} tests · {inr(f.fee)}</span>
           </div>
           <button className="btn-ghost max-sm:hidden" onClick={() => { sessionStorage.removeItem(draftKey); navigate(-1); }}><X size={16} /> Close</button>
-          <button className="btn-outline flex-1 sm:flex-none" disabled={busy} onClick={() => complete(true)}><Printer size={16} /> Save & print</button>
-          <button className="btn-primary flex-1 sm:flex-none sm:px-6" disabled={busy} onClick={() => complete(false)}><CheckCircle2 size={17} /> {v.status === 'completed' ? 'Update' : 'Complete & send out'}</button>
+          {pane === 'patient' && (
+            <button className="btn-primary flex-1 py-3 xl:hidden" onClick={() => { setPane('consult'); window.scrollTo({ top: 0 }); }}>
+              <Stethoscope size={17} /> Start consultation
+            </button>
+          )}
+          <div className={clsx('flex flex-1 gap-3 sm:flex-none', pane === 'patient' && 'max-xl:hidden')}>
+            <button className="btn-outline flex-1 sm:flex-none" disabled={busy} onClick={() => complete(true)}><Printer size={16} /> Save & print</button>
+            <button className="btn-primary flex-1 sm:flex-none sm:px-6" disabled={busy} onClick={() => complete(false)}><CheckCircle2 size={17} /> {v.status === 'completed' ? 'Update' : 'Complete'}<span className="max-sm:hidden">{v.status === 'completed' ? '' : ' & send out'}</span></button>
+          </div>
         </div>
       </div>
     </div>

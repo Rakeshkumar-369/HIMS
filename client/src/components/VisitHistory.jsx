@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import {
   Search, Pill, FlaskConical, Lock, Printer, Repeat2, CalendarCheck2, Stethoscope, Eye, ClipboardList, Activity, MessageSquareText,
-  ChevronLeft, ChevronRight, Building2,
+  ChevronLeft, ChevronRight, Building2, ArrowLeft,
 } from 'lucide-react';
 import { fmtDate, vitalFlag } from '../lib/format';
+import { useMedia } from '../lib/hooks';
 import { StatusBadge } from './ui';
 
 function Vital({ label, value, unit, flag }) {
@@ -35,7 +36,7 @@ export function VisitDetail({ v, onRepeatRx, printable = true, onPrint, onPrev, 
   return (
     <article className="animate-in">
       <header className="flex flex-wrap items-start gap-3 border-b border-line/70 pb-4">
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 basis-56">
           <div className="text-xs font-bold tracking-wider text-brand-700 uppercase">{fmtDate(v.visit_date, { weekday: 'long' })}</div>
           <h3 className="text-xl font-extrabold">{fmtDate(v.visit_date, { day: 'numeric', month: 'long', year: 'numeric' })}</h3>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
@@ -45,7 +46,7 @@ export function VisitDetail({ v, onRepeatRx, printable = true, onPrint, onPrev, 
             {v.status !== 'completed' && <StatusBadge status={v.status} />}
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 max-sm:w-full max-sm:justify-between">
           {onPrev && <button className="btn-ghost p-2" onClick={onPrev} disabled={!onPrev.enabled} title="Older visit (↓)" aria-label="Older visit"><ChevronLeft size={18} /></button>}
           {onNext && <button className="btn-ghost p-2" onClick={onNext} disabled={!onNext.enabled} title="Newer visit (↑)" aria-label="Newer visit"><ChevronRight size={18} /></button>}
           {onRepeatRx && !!v.prescriptions?.length && <button className="btn-soft px-3" onClick={() => onRepeatRx(v)}><Repeat2 size={15} /> Repeat Rx</button>}
@@ -110,6 +111,9 @@ const rowText = (v) => [v.diagnosis, v.complaints, v.doctor_name, v.clinic_name,
 export default function VisitHistory({ visits, initialId, onRepeatRx, printable = true, onPrint, compact = false, className }) {
   const [q, setQ] = useState('');
   const [selId, setSelId] = useState(initialId ?? visits[0]?.id);
+  const wide = useMedia('(min-width: 1024px)');
+  // phones: list first, tapping a date opens that visit full-width
+  const [phoneDetail, setPhoneDetail] = useState(!!initialId);
   const listRef = useRef(null);
   const filtered = useMemo(() => (q ? visits.filter((v) => rowText(v).includes(q.toLowerCase())) : visits), [visits, q]);
   const sel = visits.find((v) => v.id === selId) || filtered[0];
@@ -125,11 +129,19 @@ export default function VisitHistory({ visits, initialId, onRepeatRx, printable 
 
   if (!visits.length) return <div className="card p-10 text-center text-muted">No visits yet.</div>;
 
-  const older = Object.assign(() => move(1), { enabled: idx < filtered.length - 1 });
-  const newer = Object.assign(() => move(-1), { enabled: idx > 0 });
+  const detail = sel ? <VisitDetail key={sel.id} v={sel} onRepeatRx={onRepeatRx} printable={printable} onPrint={onPrint} onPrev={Object.assign(() => move(1), { enabled: idx < filtered.length - 1 })} onNext={Object.assign(() => move(-1), { enabled: idx > 0 })} /> : null;
+  if (!wide && phoneDetail && sel) {
+    return (
+      <div className={className}>
+        <button className="btn-soft mb-3" onClick={() => setPhoneDetail(false)}><ArrowLeft size={16} /> All visits</button>
+        <div className="card p-4">{detail}</div>
+      </div>
+    );
+  }
+
   return (
     <div className={clsx('grid gap-5', compact ? 'lg:grid-cols-[300px_1fr]' : 'lg:grid-cols-[340px_1fr]', className)}>
-      <div className="card flex max-h-[70dvh] flex-col overflow-hidden lg:max-h-[calc(100dvh-9rem)]">
+      <div className="card flex flex-col overflow-hidden lg:max-h-[calc(100dvh-9rem)]">
         <div className="border-b border-line/70 p-3">
           <div className="relative">
             <Search size={15} className="absolute top-1/2 left-3 -translate-y-1/2 text-muted" />
@@ -144,11 +156,11 @@ export default function VisitHistory({ visits, initialId, onRepeatRx, printable 
           {filtered.map((v, i) => {
             const year = v.visit_date.slice(0, 4);
             const head = i === 0 || filtered[i - 1].visit_date.slice(0, 4) !== year;
-            const on = v.id === sel?.id;
+            const on = wide && v.id === sel?.id;
             return (
               <li key={v.id}>
                 {head && <div className="sticky top-0 z-10 bg-white/95 px-2 pt-2 pb-1 text-[11px] font-extrabold tracking-wider text-muted backdrop-blur">{year}</div>}
-                <button role="option" aria-selected={on} onClick={() => setSelId(v.id)}
+                <button role="option" aria-selected={on && wide} onClick={() => { setSelId(v.id); setPhoneDetail(true); if (!wide) listRef.current?.closest(".card")?.scrollIntoView({ block: "start" }); }}
                   className={clsx('group flex w-full items-center gap-3 rounded-2xl px-2.5 py-2 text-left transition', on ? 'bg-brand-500 text-white shadow-[0_6px_16px_-8px_var(--brand-500)]' : 'hover:bg-slate-50')}>
                   <div className={clsx('w-11 shrink-0 text-center leading-tight', on ? 'text-white' : 'text-ink')}>
                     <div className="text-[17px] font-extrabold tabular">{fmtDate(v.visit_date, { day: '2-digit' })}</div>
@@ -171,9 +183,7 @@ export default function VisitHistory({ visits, initialId, onRepeatRx, printable 
           {!filtered.length && <li className="px-3 py-8 text-center text-sm text-muted">Nothing matches “{q}”.</li>}
         </ul>
       </div>
-      <div className="card min-w-0 p-5 sm:p-6">
-        {sel ? <VisitDetail key={sel.id} v={sel} onRepeatRx={onRepeatRx} printable={printable} onPrint={onPrint} onPrev={older} onNext={newer} /> : null}
-      </div>
+      {wide && <div className="card min-w-0 p-5 sm:p-6">{detail}</div>}
     </div>
   );
 }

@@ -51,7 +51,15 @@ Step-by-step instructions for Windows and macOS: **`docs/CareNest-HIMS-Local-Set
 - Set and reset passwords (users must change them at first sign-in), unlock, deactivate or re-activate accounts.
 - Security log of sign-ins, failed attempts, record access and admin actions.
 
-**Everyone:** light and dark mode, pastel themes, keyboard shortcuts (`N`, `T`, `Ctrl K`), and a responsive layout for laptop, tablet and phone.
+**Everyone:** light and dark mode, pastel themes, keyboard shortcuts (`N`, `T`, `Ctrl K`).
+
+**Phones & tablets**
+- Bottom menu with **Today · Patients · ＋ New case · Consult · More**. The **More** sheet reaches every other screen, appearance and sign-out.
+- Consult room splits into **Patient & history** and **Consultation** tabs, with a sticky "Complete" bar.
+- Sticky "Register" button on the New case form. Visit history opens full-width with ← All visits and next/previous.
+- Thumb-sized buttons, and no zoom-in when typing on iPhone.
+- The admin console has its own bottom menu.
+- **Install as an app** (PWA): open the site on the phone, then More → *Install the app* (Android / Chrome / Edge) or Safari → Share → *Add to Home Screen* (iPhone). It opens full-screen with its own icon. The app shell loads even with a weak connection, and patient data is never stored on the device.
 
 ## Security
 

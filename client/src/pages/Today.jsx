@@ -53,7 +53,7 @@ function RowMenu({ items }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="relative">
-      <button className="btn-ghost p-2" onClick={() => setOpen(!open)} onBlur={() => setTimeout(() => setOpen(false), 150)} aria-label="More"><MoreHorizontal size={18} /></button>
+      <button className="btn-ghost p-2" onClick={() => setOpen(!open)} onBlur={() => setTimeout(() => setOpen(false), 150)} aria-label="Visit actions"><MoreHorizontal size={18} /></button>
       {open && (
         <div className="animate-pop absolute right-0 z-20 mt-1 w-48 rounded-2xl border border-line bg-white p-1.5 shadow-lift">
           {items.map(({ label, icon: Icon, onClick, danger }) => (
@@ -100,7 +100,7 @@ export default function Today() {
       <PageHeader eyebrow={clinic.name} title={isToday ? 'Today' : fmtDay(date)} subtitle={isToday ? fmtDay(date) : 'Viewing a past day'}
         actions={<>
           <label className="btn-outline cursor-pointer"><CalendarDays size={16} /><input type="date" value={date} max={todayISO()} onChange={(e) => setDate(e.target.value || todayISO())} className="w-[8.5rem] bg-transparent outline-none" /></label>
-          <Link to="/app/register" className="btn-primary"><UserPlus size={17} /> New case</Link>
+          <Link to="/app/register" className="btn-primary max-lg:hidden"><UserPlus size={17} /> New case</Link>
         </>} />
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -165,7 +165,7 @@ export default function Today() {
                       <div className="flex items-center gap-1">
                         {isToday && (
                           <button className="btn-primary" onClick={() => sendIn(v)}>
-                            <MonitorUp size={16} /> <span className="hidden sm:inline">{isDoctor ? 'Call in' : 'Display to doctor'}</span>
+                            <MonitorUp size={16} /> <span className="sm:hidden">{isDoctor ? 'Call in' : 'Send in'}</span><span className="max-sm:hidden">{isDoctor ? 'Call in' : 'Display to doctor'}</span>
                           </button>
                         )}
                         <RowMenu items={[

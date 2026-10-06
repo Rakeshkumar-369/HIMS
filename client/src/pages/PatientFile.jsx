@@ -66,8 +66,8 @@ export default function PatientFile() {
   return (
     <div className="animate-in space-y-5">
       <div className="card overflow-hidden">
-        <div className="flex flex-wrap items-center gap-5 bg-gradient-to-r from-brand-100 via-brand-50 to-white p-6">
-          <Avatar name={p.full_name} className="size-16 bg-white text-xl" />
+        <div className="flex flex-wrap items-center gap-4 bg-gradient-to-r from-brand-100 via-brand-50 to-white p-5 sm:gap-5 sm:p-6">
+          <Avatar name={p.full_name} className="size-14 bg-white text-lg sm:size-16 sm:text-xl" />
           <div className="min-w-0 flex-1">
             <div className="font-mono text-xs font-bold tracking-widest text-brand-700">CASE #{caseFmt(p.case_no)}{home.id !== clinicId && <span className="ml-2 rounded-full bg-sky-50 px-2 py-0.5 font-sans tracking-normal text-sky-700">Registered at {home.name}</span>}</div>
             <h1 className="truncate text-2xl font-extrabold">{p.full_name}</h1>
@@ -78,10 +78,10 @@ export default function PatientFile() {
               {p.address && <span className="inline-flex items-center gap-1"><MapPin size={13} />{p.address}</span>}
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid w-full grid-cols-[1fr_auto_auto] gap-2 sm:flex sm:w-auto sm:flex-wrap">
             <button className="btn-primary" onClick={() => setQueueOpen(true)}><CalendarPlus size={16} /> Add to today’s queue</button>
-            <Link to={`/print/patient/${p.id}`} target="_blank" className="btn-outline"><Printer size={16} /> Full case sheet</Link>
-            <button className="btn-ghost" onClick={() => setEditOpen(true)}><Pencil size={16} /> Edit</button>
+            <Link to={`/print/patient/${p.id}`} target="_blank" className="btn-outline"><Printer size={16} /> <span className="max-sm:hidden">Full case sheet</span></Link>
+            <button className="btn-ghost" onClick={() => setEditOpen(true)}><Pencil size={16} /> <span className="max-sm:hidden">Edit</span></button>
           </div>
         </div>
         <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -94,7 +94,7 @@ export default function PatientFile() {
 
       <section>
         <h2 className="mb-3 flex items-center gap-2 text-lg font-bold"><History size={18} className="text-brand-600" /> Visit history
-          <span className="text-sm font-medium text-muted">— pick any date to see that whole visit</span></h2>
+          <span className="text-sm font-medium text-muted max-sm:hidden">— pick any date to see that whole visit</span></h2>
         <VisitHistory visits={visits} />
       </section>
 

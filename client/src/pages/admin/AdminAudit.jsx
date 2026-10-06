@@ -18,13 +18,25 @@ export default function AdminAudit() {
   return (
     <div className="animate-in">
       <PageHeader eyebrow="Security" title="Security log" subtitle="Sign-ins, account changes and access to patient records. Keep at least 180 days." />
-      <div className="mb-4 flex flex-wrap gap-1.5">
-        {FILTERS.map((f) => <button key={f.value} className={clsx('chip', action === f.value && 'chip-on')} onClick={() => setAction(f.value)}>{f.label}</button>)}
+      <div className="no-scrollbar -mx-4 mb-4 flex gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0">
+        {FILTERS.map((f) => <button key={f.value} className={clsx('chip shrink-0', action === f.value && 'chip-on')} onClick={() => setAction(f.value)}>{f.label}</button>)}
       </div>
       {loading && !data ? <PageLoader /> : (
         <div className="card overflow-hidden">
           {!data?.length && <Empty icon={ScrollText} title="No entries" />}
-          <div className="scrollbar-thin overflow-x-auto">
+          <ul className="divide-y divide-line/70 md:hidden">
+            {data?.map((a) => (
+              <li key={a.id} className={clsx('px-4 py-3', RISKY.has(a.action) && 'bg-rose-50/50')}>
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className={clsx('font-semibold', RISKY.has(a.action) && 'text-rose-700')}>{ACTION_LABEL[a.action] || a.action}</span>
+                  <span className="shrink-0 text-xs text-muted tabular">{fmtDate(a.at.slice(0, 10), { day: '2-digit', month: 'short' })} · {fmtTime(a.at)}</span>
+                </div>
+                <div className="mt-0.5 text-sm">{a.actor_name || '—'} <span className="text-xs text-muted capitalize">({a.actor_type})</span></div>
+                <div className="mt-0.5 truncate text-xs text-muted">{[a.entity && `${a.entity} #${a.entity_id}`, a.detail, a.ip && `IP ${a.ip}`].filter(Boolean).join(' · ')}</div>
+              </li>
+            ))}
+          </ul>
+          <div className="scrollbar-thin overflow-x-auto max-md:hidden">
             <table className="w-full min-w-[760px] text-sm">
               <thead className="bg-slate-50/70 text-left text-[11px] font-bold tracking-wider text-muted uppercase">
                 <tr><th className="px-5 py-3">When</th><th className="px-3 py-3">What</th><th className="px-3 py-3">Who</th><th className="px-3 py-3">Details</th><th className="px-5 py-3">IP address</th></tr>

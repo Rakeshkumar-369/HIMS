@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { api } from './api';
 import { getModePref, resolvedMode } from './themes';
 
@@ -97,4 +97,13 @@ export function useMode() {
     return () => window.removeEventListener('cn:mode', h);
   }, []);
   return state;
+}
+
+/** True while the CSS media query matches (e.g. '(min-width: 1024px)'). */
+export function useMedia(query) {
+  return useSyncExternalStore(
+    (cb) => { const m = window.matchMedia(query); m.addEventListener('change', cb); return () => m.removeEventListener('change', cb); },
+    () => window.matchMedia(query).matches,
+    () => false,
+  );
 }

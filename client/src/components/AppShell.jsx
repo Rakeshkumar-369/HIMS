@@ -3,12 +3,13 @@ import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-do
 import clsx from 'clsx';
 import { toast } from 'sonner';
 import {
-  CalendarClock, UserPlus, Stethoscope, Users, BarChart3, Wallet, Building2, Settings, LogOut, Search, ChevronDown, Check, Palette, Menu, X,
+  CalendarClock, UserPlus, Stethoscope, Users, BarChart3, Wallet, Building2, Settings, LogOut, Search, ChevronDown, Check, Palette,
 } from 'lucide-react';
 import { useAuth } from '../context/authCtx';
 import { useLive, useHotkey } from '../lib/hooks';
 import { api } from '../lib/api';
-import { Wordmark } from './Brand';
+import { Wordmark, Logo } from './Brand';
+import MobileNav from './MobileNav';
 import { Avatar } from './ui';
 import ThemePicker from './ThemePicker';
 import CommandSearch from './CommandSearch';
@@ -83,10 +84,6 @@ export default function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
-  // the drawer remembers the page it was opened on, so navigating closes it
-  const [drawerAt, setDrawerAt] = useState(null);
-  const drawer = drawerAt === location.pathname;
-  const setDrawer = (open) => setDrawerAt(open ? location.pathname : null);
 
   // One live connection for the whole app; pages listen via a window event.
   const connected = useLive(clinicId, (type, data) => {
@@ -105,7 +102,11 @@ export default function AppShell() {
   useHotkey('t', () => navigate('/app/today'));
 
   const items = NAV.filter((n) => !n.doctor || isDoctor);
-  const mobileTabs = items.filter((n) => ['/app/today', '/app/register', isDoctor ? '/app/consult' : '/app/patients', isDoctor ? '/app/dashboard' : '/app/settings'].includes(n.to));
+  // Phone: Today · Patients · (＋ New case) · Consult · More
+  const tabPaths = ['/app/today', '/app/patients', ...(isDoctor ? ['/app/consult'] : [])];
+  const tabs = tabPaths.map((to) => items.find((n) => n.to === to)).map((n) => (n.to === '/app/consult' ? { ...n, label: 'Consult' } : n));
+  const more = items.filter((n) => !tabPaths.includes(n.to) && n.to !== '/app/register');
+  const signOut = () => { logout(); navigate('/login'); };
 
   const navList = (
     <nav className="flex flex-col gap-1">
@@ -133,7 +134,7 @@ export default function AppShell() {
           <div className="truncate text-sm font-bold">{user.full_name}</div>
           <div className="text-xs text-muted capitalize">{user.role}</div>
         </div>
-        <button onClick={() => { logout(); navigate('/login'); }} className="btn-ghost p-2" title="Sign out"><LogOut size={17} /></button>
+        <button onClick={signOut} className="btn-ghost p-2" title="Sign out"><LogOut size={17} /></button>
       </div>
     </div>
   );
@@ -152,28 +153,18 @@ export default function AppShell() {
         </div>
       </aside>
 
-      {/* Drawer (mobile) */}
-      {drawer && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] lg:hidden" onClick={() => setDrawer(false)}>
-          <aside className="animate-in flex h-full w-80 max-w-[85vw] flex-col gap-6 bg-[var(--page)] p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between"><Wordmark /><button className="btn-ghost p-2" onClick={() => setDrawer(false)}><X size={20} /></button></div>
-            {navList}
-            <div className="mt-auto">{userCard}</div>
-          </aside>
-        </div>
-      )}
-
       {/* Top bar */}
       <header className="no-print sticky top-0 z-20 border-b border-line/60 bg-white/60 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-3 px-4 sm:px-6">
-          <button className="btn-ghost -ml-2 p-2 lg:hidden" onClick={() => setDrawer(true)} aria-label="Menu"><Menu size={22} /></button>
+          <span className="lg:hidden"><Logo className="size-8" /></span>
           <ClinicSwitcher />
           <div className="flex-1" />
           <button onClick={() => setSearchOpen(true)} className="hidden items-center gap-2 rounded-2xl border border-line bg-white/80 px-3 py-2 text-sm text-muted transition hover:border-brand-300 md:flex md:w-72">
             <Search size={16} /> <span className="flex-1 text-left">Find patient, case ID, phone…</span> <span className="kbd">Ctrl K</span>
           </button>
-          <button onClick={() => setSearchOpen(true)} className="btn-ghost p-2 md:hidden" aria-label="Search"><Search size={20} /></button>
-          <ModeToggle />
+          <button onClick={() => setSearchOpen(true)} className="btn-ghost p-2 md:hidden" aria-label="Search"><Search size={21} /></button>
+          <span className={clsx('size-2.5 shrink-0 rounded-full sm:hidden', connected ? 'live-dot bg-emerald-500' : 'bg-amber-400')} title={connected ? 'Live' : 'Offline'} />
+          <ModeToggle className="max-lg:hidden" />
           <div title={connected ? 'Live sync on — doctor & nurse screens update instantly' : 'Reconnecting…'}
             className={clsx('hidden items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold sm:flex', connected ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700')}>
             <span className={clsx('size-2 rounded-full', connected ? 'live-dot bg-emerald-500' : 'bg-amber-400')} />
@@ -182,20 +173,13 @@ export default function AppShell() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1400px] px-4 pt-6 pb-28 sm:px-6 lg:pb-12">
+      <main className="mx-auto max-w-[1400px] px-4 pt-5 pb-32 sm:px-6 sm:pt-6 lg:pb-12">
         <Outlet />
       </main>
 
-      {/* Bottom tabs (mobile) */}
-      <nav className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line/70 bg-white/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden">
-        <div className="mx-auto grid max-w-lg grid-cols-4">
-          {mobileTabs.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to} className={({ isActive }) => clsx('flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold', isActive ? 'text-brand-700' : 'text-slate-500')}>
-              {({ isActive }) => (<><span className={clsx('grid h-8 w-12 place-items-center rounded-full transition', isActive && 'bg-brand-100')}><Icon size={20} /></span>{label}</>)}
-            </NavLink>
-          ))}
-        </div>
-      </nav>
+      <MobileNav tabs={tabs} fab={{ to: '/app/register', label: 'New case', icon: UserPlus }} more={more}
+        header={<div className="flex min-w-0 items-center gap-3"><Avatar name={user.full_name} /><div className="min-w-0"><div className="truncate font-bold">{user.full_name}</div><div className="text-xs text-muted capitalize">{user.role}</div></div></div>}
+        footer={<button onClick={signOut} className="btn-outline w-full py-3 text-rose-600"><LogOut size={17} /> Sign out</button>} />
 
       {searchOpen && <CommandSearch onClose={() => setSearchOpen(false)} />}
     </div>
