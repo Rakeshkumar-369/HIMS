@@ -5,7 +5,7 @@ import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { Wordmark } from '../../components/Brand';
 import ModeToggle from '../../components/ModeToggle';
 import { Field } from '../../components/ui';
-import { api, tokens } from '../../lib/api';
+import { api } from '../../lib/api';
 
 export default function PortalLogin() {
   const navigate = useNavigate();
@@ -15,8 +15,7 @@ export default function PortalLogin() {
     e.preventDefault();
     setBusy(true);
     try {
-      const d = await api.post('/auth/patient-login', f);
-      tokens.setPatient(d.token);
+      await api.post('/auth/patient-login', f);
       navigate('/portal');
     } catch (err) { toast.error(err.message); } finally { setBusy(false); }
   };

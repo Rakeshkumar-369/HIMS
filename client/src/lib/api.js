@@ -1,24 +1,18 @@
-const STAFF_KEY = 'cn.token';
-const PATIENT_KEY = 'cn.ptoken';
-
-export const tokens = {
-  staff: () => localStorage.getItem(STAFF_KEY),
-  patient: () => sessionStorage.getItem(PATIENT_KEY),
-  setStaff: (t) => (t ? localStorage.setItem(STAFF_KEY, t) : localStorage.removeItem(STAFF_KEY)),
-  setPatient: (t) => (t ? sessionStorage.setItem(PATIENT_KEY, t) : sessionStorage.removeItem(PATIENT_KEY)),
-};
-
+// Sessions live in httpOnly cookies set by the server, so no token is ever stored in JavaScript.
 export class ApiError extends Error {
-  constructor(status, message) { super(message); this.status = status; }
+  constructor(status, message) {
+    super(message);
+    this.status = status;
+  }
 }
 
 async function request(method, url, body, { patient = false } = {}) {
-  const token = patient ? tokens.patient() : tokens.staff();
   let res;
   try {
     res = await fetch(`/api${url}`, {
       method,
-      headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'CareNest', ...(body ? { 'Content-Type': 'application/json' } : {}) },
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch {
@@ -27,6 +21,7 @@ async function request(method, url, body, { patient = false } = {}) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     if (res.status === 401 && !url.includes('login')) window.dispatchEvent(new CustomEvent('cn:unauthorized', { detail: { patient } }));
+    if (res.status === 403 && data.error === 'Please set a new password first') window.dispatchEvent(new CustomEvent('cn:password-required'));
     throw new ApiError(res.status, data.error || `Request failed (${res.status})`);
   }
   return data;
@@ -38,3 +33,10 @@ export const api = {
   patch: (u, b, o) => request('PATCH', u, b, o),
   del: (u, o) => request('DELETE', u, null, o),
 };
+
+/** Patient-specific data kept on this device (drafts) is wiped at sign-out. */
+export function clearLocalClinicalData() {
+  try {
+    Object.keys(sessionStorage).filter((k) => k.startsWith('cn.draft.')).forEach((k) => sessionStorage.removeItem(k));
+  } catch { /* storage unavailable */ }
+}

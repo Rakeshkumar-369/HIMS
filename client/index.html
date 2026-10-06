@@ -10,14 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <title>CareNest · Clinic</title>
-    <script>
-      // apply light/dark before first paint to avoid a white flash
-      try {
-        var m = localStorage.getItem('cn.mode') || 'system';
-        if (m === 'system') m = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        document.documentElement.dataset.mode = m;
-      } catch (e) {}
-    </script>
+    <script src="/mode.js"></script>
   </head>
   <body>
     <div id="root"></div>

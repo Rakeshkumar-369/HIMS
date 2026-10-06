@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { Siren } from 'lucide-react';
 import { Modal, Toggle } from './ui';
@@ -13,20 +13,14 @@ const pickVitals = (v = {}) => Object.fromEntries(VITAL_KEYS.map((k) => [k, v[k]
  * mode="edit": update vitals/complaints of a queued visit (PATCH /visits/:id)
  */
 export default function VisitIntakeModal({ open, onClose, mode = 'new', patient, visit, clinicId, onSaved }) {
-  const [vitals, setVitals] = useState({});
-  const [info, setInfo] = useState({});
-  const [conds, setConds] = useState([]);
+  // The modal is mounted when opened, so these initial values are always fresh.
+  // In "new" mode the height is carried forward from the last visit — one less thing to type.
+  const [vitals, setVitals] = useState(() => (mode === 'edit' ? pickVitals(visit) : { height_cm: visit?.height_cm ?? '' }));
+  const [info, setInfo] = useState(() => (mode === 'edit'
+    ? { complaints: visit.complaints || '', complaint_duration: visit.complaint_duration || '', current_medicines: visit.current_medicines || '', nurse_notes: visit.nurse_notes || '', priority: !!visit.priority }
+    : { complaints: '', complaint_duration: '', current_medicines: visit?.current_medicines || '', nurse_notes: '', priority: false }));
+  const [conds, setConds] = useState(() => patient?.known_conditions || []);
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-    // carry height forward from the last visit — one less thing to type
-    setVitals(mode === 'edit' ? pickVitals(visit) : { height_cm: visit?.height_cm ?? '' });
-    setInfo(mode === 'edit'
-      ? { complaints: visit.complaints || '', complaint_duration: visit.complaint_duration || '', current_medicines: visit.current_medicines || '', nurse_notes: visit.nurse_notes || '', priority: !!visit.priority }
-      : { complaints: '', complaint_duration: '', current_medicines: visit?.current_medicines || '', nurse_notes: '', priority: false });
-    setConds(patient?.known_conditions || []);
-  }, [open]); // eslint-disable-line
 
   const save = async () => {
     setBusy(true);

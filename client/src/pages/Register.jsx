@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
@@ -6,12 +6,15 @@ import clsx from 'clsx';
 import AuthLayout from '../components/AuthLayout';
 import { Field } from '../components/ui';
 import ThemePicker from '../components/ThemePicker';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authCtx';
 import { applyTheme } from '../lib/themes';
+import { api } from '../lib/api';
 
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [open, setOpen] = useState(null);
+  useEffect(() => { api.get('/auth/config').then((c) => setOpen(c.allowSelfSignup)).catch(() => setOpen(false)); }, []);
   const [step, setStep] = useState(0);
   const [busy, setBusy] = useState(false);
   const [doc, setDoc] = useState({ full_name: '', email: '', phone: '', password: '', qualification: '', registration_no: '', specialization: '' });
@@ -30,6 +33,15 @@ export default function Register() {
     } catch (err) { toast.error(err.message); } finally { setBusy(false); }
   };
 
+  if (open === false) {
+    return (
+      <AuthLayout title="Accounts are created by the CareNest team" subtitle="To keep patient data safe, new clinics are set up by our team after verification.">
+        <div className="card p-6 text-sm text-slate-600">Please contact the CareNest team with your name, medical registration number and clinic details. You’ll receive your login by email or phone.</div>
+        <p className="mt-8 text-center text-sm"><Link to="/login" className="font-semibold text-brand-700 hover:underline">Back to sign in</Link></p>
+      </AuthLayout>
+    );
+  }
+
   return (
     <AuthLayout title={step === 0 ? 'Create hospital account' : 'Tell us about your clinic'}
       subtitle={step === 0 ? 'Step 1 of 2 · Doctor details' : 'Step 2 of 2 · Printed on every case sheet'}>
@@ -42,7 +54,7 @@ export default function Register() {
               <Field label="Email" required><input className="input" type="email" required value={doc.email} onChange={d('email')} /></Field>
               <Field label="Mobile"><input className="input" inputMode="tel" value={doc.phone} onChange={d('phone')} /></Field>
             </div>
-            <Field label="Password" required hint="At least 6 characters"><input className="input" type="password" minLength={6} required value={doc.password} onChange={d('password')} /></Field>
+            <Field label="Password" required hint="At least 8 characters, with letters and numbers"><input className="input" type="password" minLength={8} required autoComplete="new-password" value={doc.password} onChange={d('password')} /></Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Qualification"><input className="input" value={doc.qualification} onChange={d('qualification')} placeholder="MBBS, MD" /></Field>
               <Field label="Medical reg. no."><input className="input" value={doc.registration_no} onChange={d('registration_no')} /></Field>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Users, UserPlus, ChevronRight } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authCtx';
 import { useFetch, useDebounced } from '../lib/hooks';
 import { PageHeader, Empty, Avatar, Spinner } from '../components/ui';
 import { caseFmt, fmtDate } from '../lib/format';
@@ -10,7 +10,7 @@ export default function Patients() {
   const { clinicId, clinic } = useAuth();
   const [q, setQ] = useState('');
   const dq = useDebounced(q, 250);
-  const { data, loading } = useFetch(clinicId ? `/patients?clinicId=${clinicId}&limit=60&q=${encodeURIComponent(dq)}` : null, [clinicId, dq]);
+  const { data, loading } = useFetch(clinicId ? `/patients?clinicId=${clinicId}&limit=60&q=${encodeURIComponent(dq)}` : null, { keep: true });
 
   return (
     <div className="animate-in">

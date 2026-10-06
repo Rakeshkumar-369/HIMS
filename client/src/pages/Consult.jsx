@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import clsx from 'clsx';
 import {
   Stethoscope, FlaskConical, Pill, CalendarCheck2, Lock, Plus, Trash2, Repeat2, Printer, CheckCircle2, Coffee, AlertTriangle, History,
-  ClipboardList, Eye, Activity, Sparkles, X, Search,
+  ClipboardList, Eye, Activity, Sparkles, X, Search, ChevronRight,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authCtx';
 import { api } from '../lib/api';
 import { useFetch, useLiveEvents } from '../lib/hooks';
-import { Chips, PageLoader, Avatar } from '../components/ui';
+import { Chips, PageLoader, Avatar, Modal } from '../components/ui';
+import VisitHistory from '../components/VisitHistory';
 import { Section } from '../components/intake';
 import { LAB_TESTS, DOSAGES, TIMINGS, RX_DURATIONS, NEXT_VISITS, COMMON_MEDICINES } from '../lib/constants';
 import { caseFmt, fmtDate, fmtShort, vitalFlag, todayISO, inr } from '../lib/format';
@@ -73,8 +74,8 @@ const Sel = ({ value, options, onChange }) => (
 
 function WaitingRoom({ clinicId }) {
   const navigate = useNavigate();
-  const { data, reload } = useFetch(`/visits/queue?clinicId=${clinicId}`, [clinicId]);
-  useLiveEvents((e) => e.type === 'queue' && reload(true));
+  const { data, reload } = useFetch(`/visits/queue?clinicId=${clinicId}`);
+  useLiveEvents((e) => e.type === 'queue' && reload());
   const waiting = (data?.visits || []).filter((v) => v.status === 'waiting');
   const next = async () => {
     try { await api.post(`/visits/${waiting[0].id}/call`); navigate(`/app/consult/${waiting[0].id}`); } catch (e) { toast.error(e.message); }
@@ -111,8 +112,8 @@ export default function Consult() {
   const { visitId } = useParams();
   const { clinicId } = useAuth();
   const navigate = useNavigate();
-  const live = useFetch(!visitId && clinicId ? `/visits/live?clinicId=${clinicId}` : null, [clinicId, visitId]);
-  useLiveEvents((e) => { if (!visitId && (e.type === 'display' || e.type === 'queue')) live.reload(true); });
+  const live = useFetch(!visitId && clinicId ? `/visits/live?clinicId=${clinicId}` : null);
+  useLiveEvents((e) => { if (!visitId && (e.type === 'display' || e.type === 'queue')) live.reload(); });
 
   const activeId = visitId || live.data?.visits?.[0]?.id;
   if (!visitId && live.loading && !live.data) return <PageLoader />;
@@ -129,35 +130,38 @@ export default function Consult() {
   );
 }
 
+function initialForm(v, clinic, draftKey) {
+  let saved = null;
+  try { saved = JSON.parse(sessionStorage.getItem(draftKey)); } catch { /* no draft */ }
+  if (saved && v.status !== 'completed') return saved;
+  return {
+    observations: v.observations || '', diagnosis: v.diagnosis || '', lab_tests: v.lab_tests || [], lab_other: v.lab_other || '', advice: v.advice || '',
+    doctor_comment: v.doctor_comment || '', next_visit_label: v.next_visit_label || '', next_visit_date: v.next_visit_date || '',
+    fee: v.fee ?? clinic?.consultation_fee ?? 0, payment_mode: v.payment_mode || 'Cash',
+    prescriptions: (v.prescriptions || []).map(({ medicine, dosage, timing, duration, instructions }) => ({ medicine, dosage, timing, duration, instructions: instructions || '' })),
+  };
+}
+
 function ConsultForm({ visitId }) {
+  const { data } = useFetch(`/visits/${visitId}`);
+  if (!data) return <PageLoader />;
+  return <ConsultEditor data={data} />;
+}
+
+function ConsultEditor({ data }) {
   const navigate = useNavigate();
   const { clinic } = useAuth();
-  const { data, loading } = useFetch(`/visits/${visitId}`, [visitId]);
-  const patientId = data?.patient?.id;
-  const history = useFetch(patientId ? `/patients/${patientId}` : null, [patientId]);
-  const sugg = useFetch('/visits/suggestions', []);
-  const [f, setF] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const draftKey = `cn.draft.${visitId}`;
-  const loaded = useRef(false);
-
-  useEffect(() => {
-    if (!data || loaded.current) return;
-    loaded.current = true;
-    const v = data.visit;
-    const saved = (() => { try { return JSON.parse(localStorage.getItem(draftKey)); } catch { return null; } })();
-    setF(saved && v.status !== 'completed' ? saved : {
-      observations: v.observations || '', diagnosis: v.diagnosis || '', lab_tests: v.lab_tests || [], lab_other: v.lab_other || '', advice: v.advice || '',
-      doctor_comment: v.doctor_comment || '', next_visit_label: v.next_visit_label || '', next_visit_date: v.next_visit_date || '',
-      fee: v.fee ?? clinic?.consultation_fee ?? 0, payment_mode: v.payment_mode || 'Cash',
-      prescriptions: v.prescriptions?.length ? v.prescriptions.map(({ medicine, dosage, timing, duration, instructions }) => ({ medicine, dosage, timing, duration, instructions: instructions || '' })) : [],
-    });
-  }, [data]); // eslint-disable-line
-
-  useEffect(() => { if (f && data?.visit.status !== 'completed') localStorage.setItem(draftKey, JSON.stringify(f)); }, [f]); // eslint-disable-line
-
-  if (loading || !data || !f) return <PageLoader />;
   const { visit: v, patient: p } = data;
+  const draftKey = `cn.draft.${v.id}`;
+  const history = useFetch(`/patients/${p.id}`);
+  const sugg = useFetch('/visits/suggestions');
+  const [f, setF] = useState(() => initialForm(v, clinic, draftKey));
+  const [busy, setBusy] = useState(false);
+  const [historyAt, setHistoryAt] = useState(null);
+
+  // auto-save a draft for this browser tab (cleared on completion and at sign-out)
+  useEffect(() => { if (v.status !== 'completed') sessionStorage.setItem(draftKey, JSON.stringify(f)); }, [f, v.status, draftKey]);
+
   const prev = (history.data?.visits || []).filter((x) => x.id !== v.id && x.status === 'completed');
   const set = (k) => (val) => setF((s) => ({ ...s, [k]: val?.target ? val.target.value : val }));
   const setRx = (i, patch) => setF((s) => ({ ...s, prescriptions: s.prescriptions.map((r, j) => (j === i ? { ...r, ...patch } : r)) }));
@@ -178,7 +182,7 @@ function ConsultForm({ visitId }) {
     setBusy(true);
     try {
       await api.post(`/visits/${v.id}/complete`, { ...f, next_visit_date: f.next_visit_label === 'custom' ? f.next_visit_date : '' });
-      localStorage.removeItem(draftKey);
+      sessionStorage.removeItem(draftKey);
       toast.success(`${p.full_name} — consultation saved`, { description: 'Nurse can now print the A4 case sheet.' });
       if (print) window.open(`/print/visit/${v.id}`, '_blank');
       navigate(v.status === 'completed' ? '/app/today' : '/app/consult');
@@ -230,22 +234,23 @@ function ConsultForm({ visitId }) {
         </div>
 
         <div className="card p-5">
-          <div className="section-title mb-3"><History size={15} /> Previous visits <span className="text-muted">({prev.length})</span></div>
+          <div className="mb-3 flex items-center justify-between">
+            <div className="section-title"><History size={15} /> Previous visits <span className="text-muted">({prev.length})</span></div>
+            {prev.length > 0 && <button className="text-xs font-bold text-brand-700 hover:underline" onClick={() => setHistoryAt(prev[0].id)}>Open history</button>}
+          </div>
           {!prev.length && <p className="text-sm text-muted">First visit — no history yet.</p>}
-          <ol className="relative space-y-4 border-l-2 border-brand-100 pl-4">
-            {prev.slice(0, 6).map((x) => (
-              <li key={x.id} className="relative">
-                <span className="absolute top-1.5 -left-[23px] size-3 rounded-full border-2 border-white bg-brand-400" />
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-muted">{fmtDate(x.visit_date)}</span>
-                  {!!x.prescriptions.length && <button className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-bold text-brand-700 hover:bg-brand-100" onClick={() => repeatRx(x)}><Repeat2 size={12} /> Repeat Rx</button>}
-                </div>
-                <div className="text-sm font-bold">{x.diagnosis || '—'}</div>
-                <div className="text-xs text-muted">{x.bp_systolic && `BP ${x.bp_systolic}/${x.bp_diastolic} · `}{x.prescriptions.map((r) => r.medicine).join(', ')}</div>
-                {x.doctor_comment && <div className="mt-1 flex gap-1.5 rounded-xl bg-amber-50 px-2 py-1 text-xs text-amber-900"><Lock size={12} className="mt-0.5 shrink-0" />{x.doctor_comment}</div>}
+          <ul className="-mx-2 space-y-0.5">
+            {prev.map((x) => (
+              <li key={x.id}>
+                <button onClick={() => setHistoryAt(x.id)} className="group flex w-full items-center gap-3 rounded-xl px-2 py-1.5 text-left hover:bg-brand-50">
+                  <span className="w-[74px] shrink-0 text-xs font-bold text-muted tabular">{fmtDate(x.visit_date, { day: '2-digit', month: 'short', year: '2-digit' })}</span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold">{x.diagnosis || x.complaints || '—'}</span>
+                  {x.doctor_comment && <Lock size={12} className="shrink-0 text-amber-600" />}
+                  <ChevronRight size={14} className="shrink-0 text-slate-300 group-hover:text-brand-600" />
+                </button>
               </li>
             ))}
-          </ol>
+          </ul>
         </div>
       </aside>
 
@@ -323,6 +328,10 @@ function ConsultForm({ visitId }) {
         </section>
       </div>
 
+      <Modal open={!!historyAt} onClose={() => setHistoryAt(null)} title={`${p.full_name} · visit history`} xl>
+        <VisitHistory visits={prev} initialId={historyAt} compact onRepeatRx={(x) => { repeatRx(x); setHistoryAt(null); }} />
+      </Modal>
+
       {/* Sticky action bar */}
       <div className="no-print fixed inset-x-0 bottom-[68px] z-20 border-t border-line/70 bg-white/85 backdrop-blur-xl lg:bottom-0 lg:left-72">
         <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-4 py-3 sm:px-6">
@@ -330,7 +339,7 @@ function ConsultForm({ visitId }) {
             <span className="font-bold">{p.full_name}</span>
             <span className="text-muted"> · {f.prescriptions.length} meds · {f.lab_tests.length} tests · {inr(f.fee)}</span>
           </div>
-          <button className="btn-ghost max-sm:hidden" onClick={() => { localStorage.removeItem(draftKey); navigate(-1); }}><X size={16} /> Close</button>
+          <button className="btn-ghost max-sm:hidden" onClick={() => { sessionStorage.removeItem(draftKey); navigate(-1); }}><X size={16} /> Close</button>
           <button className="btn-outline flex-1 sm:flex-none" disabled={busy} onClick={() => complete(true)}><Printer size={16} /> Save & print</button>
           <button className="btn-primary flex-1 sm:flex-none sm:px-6" disabled={busy} onClick={() => complete(false)}><CheckCircle2 size={17} /> {v.status === 'completed' ? 'Update' : 'Complete & send out'}</button>
         </div>

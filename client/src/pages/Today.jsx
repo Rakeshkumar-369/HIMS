@@ -6,7 +6,7 @@ import {
   UserPlus, MonitorUp, Printer, Undo2, MoreHorizontal, Pencil, XCircle, Clock, Stethoscope, Users, CheckCircle2, IndianRupee, Siren,
   CalendarDays, ArrowRight, Sparkles, FileText,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authCtx';
 import { api } from '../lib/api';
 import { useFetch, useLiveEvents } from '../lib/hooks';
 import { fmtDay, fmtTime, todayISO, caseFmt, inr, vitalFlag, fmtShort } from '../lib/format';
@@ -75,11 +75,11 @@ export default function Today() {
   const [date, setDate] = useState(todayISO());
   const [edit, setEdit] = useState(null);
   const [, tick] = useState(0);
-  const { data, loading, reload } = useFetch(clinicId ? `/visits/queue?clinicId=${clinicId}&date=${date}` : null, [clinicId, date]);
-  useLiveEvents((e) => e.type === 'queue' && reload(true));
+  const { data, loading, reload } = useFetch(clinicId ? `/visits/queue?clinicId=${clinicId}&date=${date}` : null);
+  useLiveEvents((e) => e.type === 'queue' && reload());
   useEffect(() => { const t = setInterval(() => tick((x) => x + 1), 30000); return () => clearInterval(t); }, []);
 
-  const visits = data?.visits || [];
+  const visits = useMemo(() => data?.visits || [], [data]);
   const groups = useMemo(() => ({
     with: visits.filter((v) => v.status === 'with_doctor'),
     waiting: visits.filter((v) => v.status === 'waiting'),
@@ -88,7 +88,7 @@ export default function Today() {
   const collected = groups.done.reduce((s, v) => s + Number(v.fee || 0), 0);
   const isToday = date === todayISO();
 
-  const act = async (fn, msg) => { try { await fn(); if (msg) toast.success(msg); reload(true); } catch (e) { toast.error(e.message); } };
+  const act = async (fn, msg) => { try { await fn(); if (msg) toast.success(msg); reload(); } catch (e) { toast.error(e.message); } };
   const sendIn = (v) => act(async () => {
     await api.post(`/visits/${v.id}/call`);
     if (isDoctor) navigate(`/app/consult/${v.id}`);
@@ -203,7 +203,7 @@ export default function Today() {
         </div>
       )}
 
-      {edit && <VisitIntakeModal open mode="edit" visit={edit} patient={edit} onClose={() => setEdit(null)} onSaved={() => reload(true)} />}
+      {edit && <VisitIntakeModal open mode="edit" visit={edit} patient={edit} onClose={() => setEdit(null)} onSaved={() => reload()} />}
     </div>
   );
 }

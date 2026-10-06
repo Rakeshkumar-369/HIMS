@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Printer, ArrowLeft, Download, Loader2 } from 'lucide-react';
 import { downloadPdf } from '../lib/pdf';
@@ -11,11 +11,12 @@ export default function PrintFrame({ title, filename, children, back, autoPrint,
     if (autoPrint) { const t = setTimeout(() => window.print(), 600); return () => clearTimeout(t); }
     return undefined;
   }, [title, autoPrint]);
+  const startAutoDownload = useEffectEvent(() => download());
   useEffect(() => {
     if (!autoDownload) return undefined;
-    const t = setTimeout(() => download(), 500);
+    const t = setTimeout(startAutoDownload, 500);
     return () => clearTimeout(t);
-  }, [autoDownload]); // eslint-disable-line
+  }, [autoDownload]);
 
   async function download() {
     const sheet = ref.current?.querySelector('.print-sheet');

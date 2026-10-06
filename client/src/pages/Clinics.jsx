@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import clsx from 'clsx';
 import { Plus, Building2, MapPin, Phone, Users, Pencil, Crown, Trash2, UserPlus, CheckCircle2 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authCtx';
 import { api } from '../lib/api';
 import { useFetch, useMode } from '../lib/hooks';
 import { PageHeader, Modal, Field, Avatar, Segmented, Empty } from '../components/ui';
 import ThemePicker from '../components/ThemePicker';
+import PasswordField from '../components/PasswordField';
+import { generatePassword } from '../lib/password';
 import { palette } from '../lib/themes';
 import { inr, num } from '../lib/format';
 
@@ -46,15 +48,15 @@ function ClinicForm({ initial, onClose, onSaved }) {
 }
 
 function StaffPanel({ clinic }) {
-  const { data, reload } = useFetch(`/clinics/${clinic.id}/staff`, [clinic.id]);
+  const { data, reload } = useFetch(`/clinics/${clinic.id}/staff`);
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({ role: 'nurse', full_name: '', email: '', phone: '', password: '' });
+  const [f, setF] = useState(() => ({ role: 'nurse', full_name: '', email: '', phone: '', password: generatePassword() }));
   const add = async () => {
-    try { await api.post(`/clinics/${clinic.id}/staff`, f); toast.success(`${f.full_name || f.email} can now sign in to ${clinic.name}`); setOpen(false); setF({ ...f, full_name: '', email: '', phone: '', password: '' }); reload(true); } catch (e) { toast.error(e.message); }
+    try { await api.post(`/clinics/${clinic.id}/staff`, f); toast.success(`${f.full_name || f.email} can now sign in to ${clinic.name}`); setOpen(false); setF({ ...f, full_name: '', email: '', phone: '', password: generatePassword() }); reload(); } catch (e) { toast.error(e.message); }
   };
   const remove = async (u) => {
     if (!window.confirm(`Remove ${u.full_name} from ${clinic.name}?`)) return;
-    try { await api.del(`/clinics/${clinic.id}/staff/${u.id}`); reload(true); } catch (e) { toast.error(e.message); }
+    try { await api.del(`/clinics/${clinic.id}/staff/${u.id}`); reload(); } catch (e) { toast.error(e.message); }
   };
   return (
     <div className="mt-4 border-t border-line pt-4">
@@ -79,8 +81,8 @@ function StaffPanel({ clinic }) {
           <Field label="Full name"><input className="input" value={f.full_name} onChange={(e) => setF({ ...f, full_name: e.target.value })} placeholder={f.role === 'nurse' ? 'Sr. Priya Thomas' : 'Dr. …'} /></Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Mobile"><input className="input" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /></Field>
-            <Field label="Temporary password"><input className="input" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></Field>
           </div>
+          <Field label="Temporary password" hint="They will be asked to choose their own password at first sign-in. Not needed for an existing account."><PasswordField value={f.password} onChange={(v) => setF({ ...f, password: v })} /></Field>
         </div>
       </Modal>
     </div>
@@ -88,17 +90,23 @@ function StaffPanel({ clinic }) {
 }
 
 export default function Clinics() {
-  const { clinicId, setClinicId, upsertClinic, refresh } = useAuth();
-  const { data, reload } = useFetch('/clinics', []);
+  const { clinicId, setClinicId, upsertClinic, refresh, user } = useAuth();
+  const { data, reload } = useFetch('/clinics');
   const { mode } = useMode();
   const [edit, setEdit] = useState(null);
-  const saved = (c) => { upsertClinic(c); reload(true); refresh(); };
+  const saved = (c) => { upsertClinic(c); reload(); refresh(); };
+  const owned = (data || []).filter((c) => c.is_owner).length;
+  const canAdd = owned < (user.max_clinics || 0);
 
   return (
     <div className="animate-in">
       <PageHeader eyebrow="Clinic mapping" title="Your clinics" subtitle="Each clinic keeps its own patients, queue, accounts, team and colour theme."
-        actions={<button className="btn-primary" onClick={() => setEdit('new')}><Plus size={17} /> Add clinic</button>} />
-      {data && !data.length && <div className="card"><Empty icon={Building2} title="Create your first clinic" action={<button className="btn-primary" onClick={() => setEdit('new')}><Plus size={16} /> Add clinic</button>} /></div>}
+        actions={canAdd
+          ? <button className="btn-primary" onClick={() => setEdit('new')}><Plus size={17} /> Add clinic</button>
+          : <span className="rounded-2xl bg-slate-100 px-3 py-2 text-xs font-semibold text-muted">Clinic limit reached ({user.max_clinics}) · contact the CareNest team for more</span>} />
+      {data && !data.length && <div className="card"><Empty icon={Building2} title={canAdd ? 'Create your first clinic' : 'No clinic yet'}
+        text={canAdd ? null : 'Your account does not include a clinic yet. Please contact the CareNest team.'}
+        action={canAdd && <button className="btn-primary" onClick={() => setEdit('new')}><Plus size={16} /> Add clinic</button>} /></div>}
       <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
         {data?.map((c) => {
           const p = palette(c.theme, mode);

@@ -4,10 +4,11 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, ComposedChart, Line,
 } from 'recharts';
 import { Users, UserPlus, IndianRupee, TrendingDown, Wallet, Activity, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authCtx';
 import { useFetch, useMode } from '../lib/hooks';
 import { PageHeader, PageLoader, Segmented } from '../components/ui';
-import { ChartCard, ChartTooltip, Legend, RankBars, SERIES, GRID, AXIS, HOVER, SURFACE } from '../components/charts';
+import { ChartCard, ChartTooltip, Legend, RankBars } from '../components/charts';
+import { SERIES, GRID, AXIS, HOVER, SURFACE } from '../lib/chartTokens';
 import { compactInr, inr, num, fmtShort, fmtDate } from '../lib/format';
 import { palette } from '../lib/themes';
 
@@ -38,7 +39,7 @@ export default function Dashboard() {
   const { mode } = useMode();
   const [range, setRange] = useState('1m');
   const [scope, setScope] = useState(String(clinicId));
-  const { data, loading } = useFetch(`/dashboard?range=${range}&clinicId=${scope}`, [range, scope]);
+  const { data, loading } = useFetch(`/dashboard?range=${range}&clinicId=${scope}`, { keep: true });
   if (!data) return <PageLoader />;
 
   const k = data.kpis;

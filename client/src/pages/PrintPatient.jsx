@@ -6,10 +6,10 @@ import PrintFrame from '../components/PrintFrame';
 
 export default function PrintPatient() {
   const { id } = useParams();
-  const { data, error } = useFetch(`/patients/${id}`, [id]);
+  const { data, error } = useFetch(`/patients/${id}`);
   if (error) return <p className="p-10 text-center text-rose-600">{error.message}</p>;
   if (!data) return <PageLoader />;
-  const visits = data.visits.filter((v) => v.status === 'completed').map(({ doctor_comment, ...v }) => v); // eslint-disable-line no-unused-vars
+  const visits = data.visits.filter((v) => v.status === 'completed').map(({ doctor_comment, ...v }) => v);
   return (
     <PrintFrame title={`${data.patient.full_name} · complete case record`} filename={`CaseRecord-${data.patient.case_no}`}>
       <CaseSheet full clinic={data.clinic} patient={data.patient} visits={visits} />

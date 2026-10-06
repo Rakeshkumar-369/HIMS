@@ -1,55 +1,70 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { api, tokens } from '../lib/api';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AuthCtx } from './authCtx';
+import { api, clearLocalClinicalData } from '../lib/api';
 import { applyTheme } from '../lib/themes';
 
-const Ctx = createContext(null);
 const CLINIC_KEY = 'cn.clinic';
+const SIGNED_OUT = { loading: false, user: null, clinics: [] };
+
+const storedClinic = () => {
+  try { return Number(localStorage.getItem(CLINIC_KEY)) || null; } catch { return null; }
+};
 
 export function AuthProvider({ children }) {
-  const [state, setState] = useState({ loading: !!tokens.staff(), user: null, clinics: [] });
-  const [clinicId, setClinicIdRaw] = useState(() => Number(localStorage.getItem(CLINIC_KEY)) || null);
+  const [state, setState] = useState({ loading: true, user: null, clinics: [] });
+  const [clinicId, setClinicIdRaw] = useState(storedClinic);
 
   const setClinicId = useCallback((id) => {
     setClinicIdRaw(id);
-    localStorage.setItem(CLINIC_KEY, String(id));
+    try { localStorage.setItem(CLINIC_KEY, String(id)); } catch { /* storage unavailable */ }
   }, []);
 
   const accept = useCallback((data) => {
+    if (!data.user) return setState(SIGNED_OUT);
     setState({ loading: false, user: data.user, clinics: data.clinics || [] });
     const ids = (data.clinics || []).map((c) => c.id);
     setClinicIdRaw((cur) => (ids.includes(cur) ? cur : ids[0] || null));
   }, []);
 
-  const refresh = useCallback(async () => {
-    if (!tokens.staff()) return setState({ loading: false, user: null, clinics: [] });
-    try { accept(await api.get('/auth/me')); } catch { tokens.setStaff(null); setState({ loading: false, user: null, clinics: [] }); }
-  }, [accept]);
+  const refresh = useCallback(() => api.get('/auth/session').then(accept, () => setState(SIGNED_OUT)), [accept]);
 
-  useEffect(() => { refresh(); }, [refresh]);
   useEffect(() => {
-    const h = (e) => { if (!e.detail?.patient) { tokens.setStaff(null); setState({ loading: false, user: null, clinics: [] }); } };
-    window.addEventListener('cn:unauthorized', h);
-    return () => window.removeEventListener('cn:unauthorized', h);
+    api.get('/auth/session').then(accept, () => setState(SIGNED_OUT));
+  }, [accept]);
+  useEffect(() => {
+    const onUnauthorized = (e) => { if (!e.detail?.patient) setState(SIGNED_OUT); };
+    const onPasswordRequired = () => setState((s) => (s.user ? { ...s, user: { ...s.user, must_change_password: true } } : s));
+    window.addEventListener('cn:unauthorized', onUnauthorized);
+    window.addEventListener('cn:password-required', onPasswordRequired);
+    return () => {
+      window.removeEventListener('cn:unauthorized', onUnauthorized);
+      window.removeEventListener('cn:password-required', onPasswordRequired);
+    };
   }, []);
 
   const clinic = state.clinics.find((c) => c.id === clinicId) || state.clinics[0] || null;
-  useEffect(() => { if (clinic) applyTheme(clinic.theme); }, [clinic?.id, clinic?.theme]); // eslint-disable-line
+  const theme = clinic?.theme;
+  useEffect(() => { if (theme) applyTheme(theme); }, [theme]);
 
   const value = useMemo(() => ({
     ...state,
     clinic,
     clinicId: clinic?.id || null,
     isDoctor: state.user?.role === 'doctor',
+    isAdmin: state.user?.role === 'admin',
     setClinicId,
     refresh,
-    login: async (email, password) => { const d = await api.post('/auth/login', { email, password }); tokens.setStaff(d.token); accept(d); return d; },
-    register: async (body) => { const d = await api.post('/auth/register', body); tokens.setStaff(d.token); accept(d); return d; },
-    logout: () => { tokens.setStaff(null); setState({ loading: false, user: null, clinics: [] }); },
+    login: async (email, password) => { const d = await api.post('/auth/login', { email, password }); accept(d); return d; },
+    register: async (body) => { const d = await api.post('/auth/register', body); accept(d); return d; },
+    logout: async () => {
+      try { await api.post('/auth/logout'); } catch { /* already signed out */ }
+      clearLocalClinicalData();
+      setState(SIGNED_OUT);
+    },
     upsertClinic: (c) => setState((s) => ({ ...s, clinics: s.clinics.some((x) => x.id === c.id) ? s.clinics.map((x) => (x.id === c.id ? { ...x, ...c } : x)) : [...s.clinics, c] })),
     setUser: (user) => setState((s) => ({ ...s, user })),
   }), [state, clinic, setClinicId, refresh, accept]);
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 }
 
-export const useAuth = () => useContext(Ctx);

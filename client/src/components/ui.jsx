@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import clsx from 'clsx';
 import { X, Loader2 } from 'lucide-react';
 import { STATUS } from '../lib/constants';
@@ -48,7 +49,7 @@ export function Chips({ options, value, onChange, multi = false, size = 'md', cl
   );
 }
 
-export function Modal({ open, onClose, title, children, wide, footer }) {
+export function Modal({ open, onClose, title, children, wide, xl, footer }) {
   useEffect(() => {
     if (!open) return undefined;
     const h = (e) => e.key === 'Escape' && onClose?.();
@@ -56,11 +57,12 @@ export function Modal({ open, onClose, title, children, wide, footer }) {
     return () => window.removeEventListener('keydown', h);
   }, [open, onClose]);
   if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-4" onMouseDown={onClose}>
+  // Rendered at the app root so page animations (transforms) never offset the fixed overlay
+  return createPortal(
+    <div role="dialog" aria-modal="true" aria-label={typeof title === 'string' ? title : undefined} className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-4" onMouseDown={onClose}>
       <div
         onMouseDown={(e) => e.stopPropagation()}
-        className={clsx('animate-pop flex max-h-[92dvh] w-full flex-col rounded-t-3xl bg-white shadow-lift sm:rounded-3xl', wide ? 'sm:max-w-3xl' : 'sm:max-w-lg')}
+        className={clsx('animate-pop flex max-h-[92dvh] w-full flex-col rounded-t-3xl bg-white shadow-lift sm:rounded-3xl', xl ? 'sm:max-w-6xl' : wide ? 'sm:max-w-3xl' : 'sm:max-w-lg')}
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-3">
           <h3 className="text-lg font-bold">{title}</h3>
@@ -69,7 +71,8 @@ export function Modal({ open, onClose, title, children, wide, footer }) {
         <div className="scrollbar-thin overflow-y-auto px-6 pb-6">{children}</div>
         {footer && <div className="flex justify-end gap-2 border-t border-line px-6 py-4">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.getElementById('root'),
   );
 }
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { UserRound, Palette, KeyRound, Keyboard, SunMoon } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authCtx';
 import { api } from '../lib/api';
 import { PageHeader, Field } from '../components/ui';
 import { Section } from '../components/intake';
@@ -36,7 +36,7 @@ export default function Settings() {
       </Section>
       {isDoctor && clinic && (
         <Section icon={Palette} title={`Colour theme · ${clinic.name}`}>
-          <p className="mb-4 text-sm text-muted">Every clinic can have its own colour — a quick visual cue of where you're working. Changes apply instantly for everyone in this clinic.</p>
+          <p className="mb-4 text-sm text-muted">Every clinic can have its own colour — a quick visual cue of where you’re working. Changes apply instantly for everyone in this clinic.</p>
           <ThemePicker value={clinic.theme} onChange={setTheme} />
         </Section>
       )}
@@ -56,7 +56,7 @@ export default function Settings() {
       <Section icon={KeyRound} title="Change password">
         <form onSubmit={savePw} className="grid gap-4 md:grid-cols-2">
           <Field label="Current password"><input className="input" type="password" value={pw.current_password} onChange={(e) => setPw({ ...pw, current_password: e.target.value })} /></Field>
-          <Field label="New password"><input className="input" type="password" minLength={6} value={pw.new_password} onChange={(e) => setPw({ ...pw, new_password: e.target.value })} /></Field>
+          <Field label="New password" hint="At least 8 characters, with letters and numbers"><input className="input" type="password" minLength={8} autoComplete="new-password" value={pw.new_password} onChange={(e) => setPw({ ...pw, new_password: e.target.value })} /></Field>
           <div className="md:col-span-2"><button className="btn-outline" disabled={!pw.new_password}>Update password</button></div>
         </form>
       </Section>

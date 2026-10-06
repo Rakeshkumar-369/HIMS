@@ -1,35 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { Search, CornerDownLeft, UserPlus } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { api } from '../lib/api';
-import { useDebounced } from '../lib/hooks';
+import { useAuth } from '../context/authCtx';
+import { useDebounced, useFetch } from '../lib/hooks';
 import { caseFmt, fmtShort, ageSex } from '../lib/format';
 import { Avatar, Spinner } from './ui';
 
-export default function CommandSearch({ open, onClose }) {
+/** Ctrl+K patient finder. Mounted only while open, so every opening starts fresh. */
+export default function CommandSearch({ onClose }) {
   const { clinicId } = useAuth();
   const navigate = useNavigate();
   const [q, setQ] = useState('');
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [idx, setIdx] = useState(0);
+  const [pick, setPick] = useState({ q: '', i: 0 });
   const dq = useDebounced(q, 200);
-
-  useEffect(() => { if (open) { setQ(''); setIdx(0); } }, [open]);
-  useEffect(() => {
-    if (!open || !clinicId) return;
-    let live = true;
-    setLoading(true);
-    api.get(`/patients?clinicId=${clinicId}&limit=8&q=${encodeURIComponent(dq)}`)
-      .then((r) => live && (setRows(r), setIdx(0)))
-      .catch(() => {})
-      .finally(() => live && setLoading(false));
-    return () => { live = false; };
-  }, [dq, open, clinicId]);
-
-  if (!open) return null;
+  const { data, loading } = useFetch(clinicId ? `/patients?clinicId=${clinicId}&limit=8&q=${encodeURIComponent(dq)}` : null, { keep: true });
+  const rows = data || [];
+  const idx = pick.q === dq ? Math.min(pick.i, Math.max(rows.length - 1, 0)) : 0; // highlight resets when the search changes
+  const setIdx = (fn) => setPick({ q: dq, i: fn(idx) });
   const go = (p) => { onClose(); navigate(`/app/patients/${p.id}`); };
   const onKey = (e) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); setIdx((i) => Math.min(i + 1, rows.length - 1)); }

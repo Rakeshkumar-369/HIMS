@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import {
   CalendarClock, UserPlus, Stethoscope, Users, BarChart3, Wallet, Building2, Settings, LogOut, Search, ChevronDown, Check, Palette, Menu, X,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authCtx';
 import { useLive, useHotkey } from '../lib/hooks';
 import { api } from '../lib/api';
 import { Wordmark } from './Brand';
@@ -83,7 +83,10 @@ export default function AppShell() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
-  const [drawer, setDrawer] = useState(false);
+  // the drawer remembers the page it was opened on, so navigating closes it
+  const [drawerAt, setDrawerAt] = useState(null);
+  const drawer = drawerAt === location.pathname;
+  const setDrawer = (open) => setDrawerAt(open ? location.pathname : null);
 
   // One live connection for the whole app; pages listen via a window event.
   const connected = useLive(clinicId, (type, data) => {
@@ -100,7 +103,6 @@ export default function AppShell() {
   useHotkey('mod+k', () => setSearchOpen(true));
   useHotkey('n', () => navigate('/app/register'));
   useHotkey('t', () => navigate('/app/today'));
-  useEffect(() => setDrawer(false), [location.pathname]);
 
   const items = NAV.filter((n) => !n.doctor || isDoctor);
   const mobileTabs = items.filter((n) => ['/app/today', '/app/register', isDoctor ? '/app/consult' : '/app/patients', isDoctor ? '/app/dashboard' : '/app/settings'].includes(n.to));
@@ -195,7 +197,7 @@ export default function AppShell() {
         </div>
       </nav>
 
-      <CommandSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+      {searchOpen && <CommandSearch onClose={() => setSearchOpen(false)} />}
     </div>
   );
 }

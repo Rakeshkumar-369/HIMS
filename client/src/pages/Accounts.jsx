@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import clsx from 'clsx';
 import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle, Stethoscope, Wallet } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authCtx';
 import { api } from '../lib/api';
 import { useFetch } from '../lib/hooks';
 import { PageHeader, PageLoader, Segmented, Chips, Field, Empty } from '../components/ui';
@@ -17,7 +17,7 @@ export default function Accounts() {
   const [days, setDays] = useState(30);
   const [form, setForm] = useState({ kind: 'expense', category: 'Medical supplies', amount: '', note: '', txn_date: todayISO() });
   const [busy, setBusy] = useState(false);
-  const { data, reload } = useFetch(`/transactions?clinicId=${clinicId}&from=${ago(days)}`, [clinicId, days]);
+  const { data, reload } = useFetch(`/transactions?clinicId=${clinicId}&from=${ago(days)}`, { keep: true });
 
   const add = async (e) => {
     e.preventDefault();
@@ -26,10 +26,10 @@ export default function Accounts() {
       await api.post('/transactions', { ...form, clinic_id: clinicId });
       toast.success(`${form.kind === 'expense' ? 'Expense' : 'Income'} of ${inr(form.amount)} saved`);
       setForm({ ...form, amount: '', note: '' });
-      reload(true);
+      reload();
     } catch (err) { toast.error(err.message); } finally { setBusy(false); }
   };
-  const remove = async (id) => { try { await api.del(`/transactions/${id}`); reload(true); } catch (e) { toast.error(e.message); } };
+  const remove = async (id) => { try { await api.del(`/transactions/${id}`); reload(); } catch (e) { toast.error(e.message); } };
 
   if (!data) return <PageLoader />;
   const inc = data.transactions.filter((t) => t.kind === 'income').reduce((s, t) => s + Number(t.amount), 0) + data.consultation.amount;

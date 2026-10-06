@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import clsx from 'clsx';
 import { UserRound, Activity, HeartPulse, MessageSquareText, Pill, ChevronDown, Siren, CheckCircle2, Search, NotebookPen } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/authCtx';
 import { api } from '../lib/api';
 import { Field, Chips, PageHeader, Toggle } from '../components/ui';
 import { VitalsInputs, ConditionsInput, ComplaintsInput, Section } from '../components/intake';
