@@ -3,6 +3,7 @@
 A calm, fast clinic management system for small and busy practices. It works for a doctor alone, a doctor with one nurse, or a full team, and one doctor can run several clinics.
 
 **Module 1:** Doctor ⇄ Nurse case flow, patient portal, practice insights and a platform admin console.
+**Module 2:** Vendors & purchases for clinics, and a freelance practice book for visiting doctors (work log, workplaces, payments with TDS, earnings & balance sheet).
 
 **Stack:** React 19 · Vite · Tailwind CSS v4 · Node.js · Express 5 · MySQL 8 (or MariaDB 10.6+) · Recharts
 
@@ -23,6 +24,7 @@ npm run dev                            # API on :4000, app on http://localhost:5
 | Doctor (owns 2 clinics) | `doctor@demo.com` | `Demo@123` |
 | Nurse – Sunrise Family Clinic | `nurse@demo.com` | `Demo@123` |
 | Nurse – Green Valley Health Centre | `nurse2@demo.com` | `Demo@123` |
+| Visiting / freelance doctor (4 workplaces) | `freelance@demo.com` | `Demo@123` |
 | Patient portal | Case ID `100200300` | Mobile `9000000001` |
 
 The demo queue is created for the day you run `db:reset`; run it again for a fresh "today".
@@ -41,7 +43,23 @@ Step-by-step instructions for Windows and macOS: **`docs/CareNest-HIMS-Local-Set
 **Doctor**
 - **Clinics**: unique names, per-clinic data, team, fee and a colour theme per clinic.
 - **Insights**: 1 week to 1 year, per clinic or all. Cases, age and gender, diagnoses, conditions, income vs outflow, medicines and lab tests, each with a table view.
-- **Accounts**: consultation fees are counted automatically, plus quick income and expense entries.
+- **Accounts**: consultation fees are counted automatically, plus quick income and expense entries. Vendor payments appear here on their own.
+
+**Vendors & purchases (per clinic)**
+- Vendor book: name, category, contact person, phone, email, address, city, GSTIN, credit terms and notes. One-tap Call and WhatsApp.
+- **Orders** with date and time, items, quantity, unit, rate and GST %. Items you bought before fill in by themselves.
+- **Deliveries**, full or partial, with invoice number, batch and expiry. The bill is worked out from what actually arrived.
+- **Payments** (cash, UPI, card, bank, cheque) are cleared against the oldest bills first. Each payment is booked as a clinic expense on the day it is paid, so it flows straight into Accounts and Insights.
+- Outstanding, overdue, due-in-7-days and awaiting-delivery totals; a running-balance **statement** per vendor with Excel/CSV and PDF export. A "dues" card appears on Today.
+- Vendors have no login; this is only for the clinic's own tracking.
+
+**Freelance practice (visiting doctors)**
+- An admin sets each doctor to **Works as**: *Own clinic(s)*, *Freelance / visiting* or *Both*. Freelance doctors open straight to their Work log.
+- **Workplaces**: hospitals, clinics, nursing homes, camps or online platforms, with city, address, contact, pay model (per case, per procedure, fixed per visit, monthly retainer or revenue share %), usual fee, TDS % and how many days they usually take to pay.
+- **Work log**: date and time, workplace, type of work, procedure name (typed freely, with suggestions), short patient details, hospital reference (IP/UHID), amount mentioned, and "paid on the spot". About 10 seconds per entry, with *Save & add another*.
+- **Payments received**, with TDS: enter the gross amount and the TDS is worked out. Payments settle the oldest pending work first. Unpaid work can be written off (and undone).
+- **Earnings & balance sheet**: billed vs received, TDS (tax credit), expenses, net in hand, pending and overdue per workplace, aging, top procedures, by city, and a follow-up list. Statements per workplace with Excel/CSV and PDF export.
+- **My expenses** (travel, CME, instruments, indemnity…) and **My vendors** for personal purchases.
 
 **Patients**
 - **Portal**: sign in with Case ID + mobile, browse visits, and download the full case sheet as a PDF.
@@ -54,7 +72,7 @@ Step-by-step instructions for Windows and macOS: **`docs/CareNest-HIMS-Local-Set
 **Everyone:** light and dark mode, pastel themes, keyboard shortcuts (`N`, `T`, `Ctrl K`).
 
 **Phones & tablets**
-- Bottom menu with **Today · Patients · ＋ New case · Consult · More**. The **More** sheet reaches every other screen, appearance and sign-out.
+- Bottom menu with **Today · Patients · ＋ New case · Consult · More** (freelance doctors get **Work log · Workplaces · ＋ Log work · Earnings · More**). The **More** sheet reaches every other screen, appearance and sign-out.
 - Consult room splits into **Patient & history** and **Consultation** tabs, with a sticky "Complete" bar.
 - Sticky "Register" button on the New case form. Visit history opens full-width with ← All visits and next/previous.
 - Thumb-sized buttons, and no zoom-in when typing on iPhone.
