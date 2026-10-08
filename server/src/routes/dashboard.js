@@ -75,16 +75,16 @@ r.get('/', ah(async (req, res) => {
     query(`SELECT l.test_name AS name, COUNT(*) AS n FROM visit_lab_tests l JOIN visits v ON v.id = l.visit_id WHERE ${V}
            GROUP BY l.test_name ORDER BY n DESC LIMIT 12`, vp),
     query(`SELECT ${bucketExpr('v.visit_date', finGran)} AS b, SUM(v.fee) AS amt FROM visits v WHERE ${V} GROUP BY b`, vp),
-    query(`SELECT ${bucketExpr('t.txn_date', finGran)} AS b, t.kind, SUM(t.amount) AS amt FROM transactions t
+    query(`SELECT ${bucketExpr('t.txn_date', finGran)} AS b, t.kind, SUM(t.amount) AS amt FROM clinic_ledger t
             WHERE t.clinic_id IN (?) AND t.txn_date BETWEEN ? AND ? GROUP BY b, t.kind`, vp),
-    query(`SELECT category AS name, SUM(amount) AS n FROM transactions WHERE kind = 'expense' AND clinic_id IN (?) AND txn_date BETWEEN ? AND ?
+    query(`SELECT category AS name, SUM(amount) AS n FROM clinic_ledger WHERE kind = 'expense' AND clinic_id IN (?) AND txn_date BETWEEN ? AND ?
            GROUP BY category ORDER BY n DESC`, vp),
-    query(`SELECT category AS name, SUM(amount) AS n FROM transactions WHERE kind = 'income' AND clinic_id IN (?) AND txn_date BETWEEN ? AND ?
+    query(`SELECT category AS name, SUM(amount) AS n FROM clinic_ledger WHERE kind = 'income' AND clinic_id IN (?) AND txn_date BETWEEN ? AND ?
            GROUP BY category ORDER BY n DESC`, vp),
     query(`SELECT v.payment_mode AS name, COUNT(*) AS n, SUM(v.fee) AS amt FROM visits v WHERE ${V} GROUP BY v.payment_mode`, vp),
     query(`SELECT v.clinic_id, COUNT(*) AS cases, SUM(v.fee) AS fees FROM visits v WHERE ${V} GROUP BY v.clinic_id`, vp),
-    query(`SELECT kind, SUM(amount) AS amt FROM transactions WHERE clinic_id IN (?) AND txn_date BETWEEN ? AND ? GROUP BY kind`, vp),
-    query(`SELECT kind, SUM(amount) AS amt FROM transactions WHERE clinic_id IN (?) AND txn_date BETWEEN ? AND ? GROUP BY kind`, [clinicIds, prevFrom, prevTo]),
+    query(`SELECT kind, SUM(amount) AS amt FROM clinic_ledger WHERE clinic_id IN (?) AND txn_date BETWEEN ? AND ? GROUP BY kind`, vp),
+    query(`SELECT kind, SUM(amount) AS amt FROM clinic_ledger WHERE clinic_id IN (?) AND txn_date BETWEEN ? AND ? GROUP BY kind`, [clinicIds, prevFrom, prevTo]),
   ]);
 
   const sumKind = (rows, k) => Number(rows.find((x) => x.kind === k)?.amt || 0);
@@ -121,7 +121,7 @@ r.get('/', ah(async (req, res) => {
     kpis: {
       cases: Number(kpi[0].cases), prev_cases: Number(kpiPrev[0].cases), patients: Number(kpi[0].patients),
       new_patients: Number(newPatients[0].n), avg_per_day: +(Number(kpi[0].cases) / days).toFixed(1),
-      income, expense, net: income - expense, prev_income: prevIncome, prev_expense: prevExpense,
+      income, expense, net: Math.round((income - expense) * 100) / 100, prev_income: prevIncome, prev_expense: prevExpense,
     },
     trend, finance, ageGroups,
     gender: genderRows.map((g) => ({ name: g.gender, n: Number(g.n) })),

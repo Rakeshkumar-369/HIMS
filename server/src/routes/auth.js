@@ -16,7 +16,7 @@ const DUMMY_HASH = bcrypt.hashSync('timing-equaliser-not-a-password', 12);
 export const publicUser = (u) => ({
   id: u.id, role: u.role, full_name: u.full_name, email: u.email, phone: u.phone, address: u.address, city: u.city,
   qualification: u.qualification, registration_no: u.registration_no, specialization: u.specialization,
-  max_clinics: u.max_clinics, must_change_password: !!u.must_change_password,
+  max_clinics: u.max_clinics, practice_type: u.practice_type, must_change_password: !!u.must_change_password,
 });
 
 async function clinicsFor(userId) {

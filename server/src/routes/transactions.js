@@ -13,8 +13,8 @@ r.get('/', ah(async (req, res) => {
   const to = req.query.to || todayISO();
   const from = req.query.from || addDays(to, -29);
   const [rows, fees] = await Promise.all([
-    query(`SELECT t.*, u.full_name AS created_by_name FROM transactions t LEFT JOIN users u ON u.id = t.created_by
-            WHERE t.clinic_id = ? AND t.txn_date BETWEEN ? AND ? ORDER BY t.txn_date DESC, t.id DESC`, [clinicId, from, to]),
+    // manual entries + vendor payments (vendor bills count as an expense when they are paid)
+    query(`SELECT * FROM clinic_ledger WHERE clinic_id = ? AND txn_date BETWEEN ? AND ? ORDER BY txn_date DESC, source, id DESC`, [clinicId, from, to]),
     one(`SELECT COALESCE(SUM(fee),0) AS amt, COUNT(*) AS n FROM visits WHERE clinic_id = ? AND status = 'completed' AND visit_date BETWEEN ? AND ?`, [clinicId, from, to]),
   ]);
   res.json({ from, to, transactions: rows, consultation: { amount: Number(fees.amt), visits: Number(fees.n) } });

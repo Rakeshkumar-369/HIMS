@@ -16,6 +16,8 @@ import visitRoutes from './routes/visits.js';
 import dashboardRoutes from './routes/dashboard.js';
 import transactionRoutes from './routes/transactions.js';
 import portalRoutes from './routes/portal.js';
+import vendorRoutes from './routes/vendors.js';
+import practiceRoutes from './routes/practice.js';
 import { requireStaff, idParam } from './middleware/auth.js';
 import { subscribe } from './lib/live.js';
 import { apiLimiter } from './lib/security.js';
@@ -88,6 +90,8 @@ app.use('/api/visits', visitRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/portal', portalRoutes);
+app.use('/api/vendors', vendorRoutes);
+app.use('/api/practice', practiceRoutes);
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
 
 // In production, serve the built React app from the same port.

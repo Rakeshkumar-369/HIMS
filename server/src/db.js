@@ -7,6 +7,7 @@ export const pool = mysql.createPool({
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'carenest_hims',
+  charset: 'utf8mb4_unicode_ci', // same collation as the tables, on MySQL and MariaDB alike
   waitForConnections: true,
   connectionLimit: 10,
   dateStrings: true,          // return DATE/DATETIME as plain strings (no TZ surprises)

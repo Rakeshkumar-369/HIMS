@@ -3,6 +3,7 @@
 import bcrypt from 'bcryptjs';
 import { pool } from '../src/db.js';
 import { todayISO, addDays } from '../src/lib/util.js';
+import { seedVendors, seedFreelance } from './seed-modules.js';
 
 // Deterministic PRNG so every install shows the same demo data
 let seed = 20261006;
@@ -122,6 +123,7 @@ try {
   const caseNo = () => { let n; do { n = String(int(100000000, 999999999)); } while (usedCase.has(n)); usedCase.add(n); return n; };
 
   let totalVisits = 0;
+  const vendorLog = { vendors: 0, billed: 0 };
   let totalPatients = 0;
   for (const c of clinics) {
     const pool_ = []; // patients registered so far (for follow-ups)
@@ -216,14 +218,14 @@ try {
       }
       if (d.getDate() === 5) txns.push([c.id, date, 'expense', 'Electricity & water', int(2800, 5200) * scale | 0, null, doctorId]);
       if (d.getDay() === 1) {
-        txns.push([c.id, date, 'expense', 'Medical supplies', int(1500, 6500) * scale | 0, 'Gloves, syringes, dressing material', doctorId]);
         if (chance(0.5)) txns.push([c.id, date, 'income', 'Procedures', int(800, 4500) * scale | 0, 'Dressing / injections / nebulisation', doctorId]);
         if (chance(0.6)) txns.push([c.id, date, 'income', 'Lab collection', int(1200, 5000) * scale | 0, 'Sample collection share', doctorId]);
       }
-      if (d.getDate() === 15 && chance(0.5)) txns.push([c.id, date, 'expense', 'Equipment & maintenance', int(1500, 12000), pick(['BP apparatus service', 'Glucometer strips', 'AC service', 'Nebuliser repair']), doctorId]);
       if (d.getDate() === 20) txns.push([c.id, date, 'expense', 'Internet & phone', 1200, null, doctorId]);
     }
     await conn.query('INSERT INTO transactions (clinic_id, txn_date, kind, category, amount, note, created_by) VALUES ?', [txns]);
+    // Supplies, medicines, lab, equipment and housekeeping now come from the vendor module
+    await seedVendors(conn, c, doctorId, { int, pick, chance, addDays, today, scale, log: vendorLog });
     c.demoPatient = pool_.find((p) => p.d.cond === 'Diabetes') || pool_[0];
   }
 
@@ -232,11 +234,15 @@ try {
   await conn.query("UPDATE patients SET case_no = '100200300', phone = '9000000001', full_name = 'Ramesh Kumar', gender = 'Male' WHERE id = ?", [demo.id]);
   const [[{ case_no }]] = await conn.query('SELECT case_no FROM patients WHERE id = ?', [demo.id]);
 
-  console.log(`✔ Seeded ${totalPatients} patients and ${totalVisits} visits across ${clinics.length} clinics.\n`);
+  const fl = await seedFreelance(conn, hash, { int, pick, chance, addDays, today });
+
+  console.log(`✔ Seeded ${totalPatients} patients and ${totalVisits} visits across ${clinics.length} clinics.`);
+  console.log(`✔ Seeded ${vendorLog.vendors} vendors with ₹${Math.round(vendorLog.billed).toLocaleString('en-IN')} of deliveries, and a freelance doctor with ${fl.services} services at ${fl.workplaces} workplaces.\n`);
   console.log('  Super admin   : admin@carenest.app / Admin@123');
   console.log('  Doctor login  : doctor@demo.com / Demo@123');
   console.log('  Nurse login   : nurse@demo.com  / Demo@123   (Sunrise Family Clinic)');
   console.log('  Nurse login   : nurse2@demo.com / Demo@123   (Green Valley Health Centre)');
+  console.log('  Freelance doc : freelance@demo.com / Demo@123 (visits 4 hospitals/clinics)');
   console.log(`  Patient portal: Case ID ${case_no} + mobile 9000000001`);
 } finally {
   conn.release();

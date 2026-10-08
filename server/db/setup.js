@@ -14,6 +14,7 @@ const conn = await mysql.createConnection({
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
   multipleStatements: true,
+  charset: 'utf8mb4_unicode_ci',
 });
 
 await conn.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);

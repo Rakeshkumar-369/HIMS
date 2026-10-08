@@ -15,6 +15,8 @@ r.param('id', idParam);
 
 const PROFILE = ['full_name', 'phone', 'address', 'city', 'qualification', 'registration_no', 'specialization'];
 const clampClinics = (n) => Math.max(0, Math.min(50, Number.parseInt(n, 10) || 0));
+const PRACTICE = ['clinic', 'freelance', 'both'];
+const practiceOf = (v) => (PRACTICE.includes(v) ? v : 'clinic');
 
 async function loadDoctor(id) {
   const d = await one("SELECT * FROM users WHERE id = ? AND role = 'doctor'", [id]);
@@ -89,10 +91,11 @@ r.post('/doctors', ah(async (req, res) => {
   const id = await tx(async (c) => {
     const [u] = await c.query(
       `INSERT INTO users (role, full_name, email, phone, address, city, qualification, registration_no, specialization, max_clinics,
-                          password_hash, must_change_password, created_by)
-       VALUES ('doctor',?,?,?,?,?,?,?,?,?,?,?,?)`,
+                          practice_type, password_hash, must_change_password, created_by)
+       VALUES ('doctor',?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [b.full_name.trim(), email, nullIfEmpty(b.phone), nullIfEmpty(b.address), nullIfEmpty(b.city), nullIfEmpty(b.qualification),
-       nullIfEmpty(b.registration_no), nullIfEmpty(b.specialization), max, await bcrypt.hash(b.password, 12), b.must_change_password === false ? 0 : 1, req.user.id]);
+       nullIfEmpty(b.registration_no), nullIfEmpty(b.specialization), max, practiceOf(b.practice_type), await bcrypt.hash(b.password, 12),
+       b.must_change_password === false ? 0 : 1, req.user.id]);
     for (const cl of clinics) await insertClinic(c, u.insertId, cl);
     return u.insertId;
   });
@@ -118,6 +121,7 @@ r.patch('/doctors/:id', ah(async (req, res) => {
     if (max < owned) throw new HttpError(400, `This doctor already owns ${owned} clinic(s); the limit cannot be lower than that`);
     sets.push('max_clinics = ?'); vals.push(max);
   }
+  if ('practice_type' in b) { sets.push('practice_type = ?'); vals.push(practiceOf(b.practice_type)); }
   if ('is_active' in b) {
     sets.push('is_active = ?', 'token_version = token_version + 1'); // deactivation signs them out everywhere
     vals.push(b.is_active ? 1 : 0);
