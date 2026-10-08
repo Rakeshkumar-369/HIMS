@@ -114,8 +114,8 @@ export default function NewCase() {
         <aside className="xl:sticky xl:top-24 xl:self-start">
           <div className="card overflow-hidden">
             <div className="bg-gradient-to-br from-brand-100 to-brand-50 p-5 max-xl:hidden">
-              <div className="text-xs font-bold tracking-wider text-brand-700 uppercase">Preview</div>
-              <div className="mt-2 truncate text-xl font-extrabold">{p.full_name || 'New patient'}</div>
+              <div className="text-xs font-medium text-brand-700">Preview</div>
+              <div className="mt-2 truncate text-xl font-semibold">{p.full_name || 'New patient'}</div>
               <div className="mt-1 text-sm text-slate-600">
                 {[p.gender, useDob ? p.dob : p.age_years && `${p.age_years} yrs`, p.phone].filter(Boolean).join(' · ') || 'Fill in the basics to begin'}
               </div>

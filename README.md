@@ -27,7 +27,11 @@ npm run dev                            # API on :4000, app on http://localhost:5
 | Visiting / freelance doctor (4 workplaces) | `freelance@demo.com` | `Demo@123` |
 | Patient portal | Case ID `100200300` | Mobile `9000000001` |
 
-The demo queue is created for the day you run `db:reset`; run it again for a fresh "today".
+The login page lists every demo account; tap one to sign in. The demo queue is created for the day you run `db:reset`; run it again for a fresh "today".
+
+**Passwords are saved in MySQL.** If you change a password in the app, it stays changed after you stop and restart `npm run dev`. Only `npm run db:reset` (which also erases all data) brings back the demo passwords above.
+
+**After pulling new code:** `npm run setup` (new packages), then `npm run dev`. Run `npm run db:reset` too when the release notes mention new tables. That erases your data, so take a backup first if you have real entries.
 Step-by-step instructions for Windows and macOS: **`docs/CareNest-HIMS-Local-Setup-Guide.docx`**.
 
 ## Features

@@ -91,7 +91,7 @@ export default function MobileNav({ tabs, fab, more = [], header, footer }) {
             <div className="mt-4 space-y-3">
               <InstallTile />
               <div className="rounded-2xl border border-line bg-white p-3">
-                <div className="mb-2 text-[11px] font-bold tracking-wider text-muted uppercase">Appearance</div>
+                <div className="mb-2 text-xs font-medium text-muted">Appearance</div>
                 <div className="overflow-x-auto no-scrollbar"><ModeSegmented /></div>
               </div>
               {footer}

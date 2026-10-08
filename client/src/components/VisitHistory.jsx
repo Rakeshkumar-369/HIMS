@@ -12,8 +12,8 @@ import { StatusBadge } from './ui';
 function Vital({ label, value, unit, flag }) {
   return (
     <div className={clsx('rounded-2xl px-3 py-2', flag === 'high' ? 'bg-rose-50' : flag === 'low' ? 'bg-amber-50' : 'bg-slate-50')}>
-      <div className="text-[10px] font-bold tracking-wider text-muted uppercase">{label}</div>
-      <div className={clsx('text-[15px] font-extrabold tabular', flag === 'high' ? 'text-rose-700' : flag === 'low' ? 'text-amber-700' : 'text-ink')}>
+      <div className="text-[11px] font-medium text-muted">{label}</div>
+      <div className={clsx('text-[15px] font-semibold tabular', flag === 'high' ? 'text-rose-700' : flag === 'low' ? 'text-amber-700' : 'text-ink')}>
         {value ?? '—'}{value != null && unit && <span className="ml-0.5 text-[11px] font-medium text-muted">{unit}</span>}
       </div>
     </div>
@@ -24,7 +24,7 @@ function Block({ icon: Icon, title, children }) {
   if (!children) return null;
   return (
     <div>
-      <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-muted uppercase"><Icon size={13} /> {title}</div>
+      <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted"><Icon size={13} /> {title}</div>
       <div className="text-[15px] leading-relaxed">{children}</div>
     </div>
   );
@@ -37,8 +37,8 @@ export function VisitDetail({ v, onRepeatRx, printable = true, onPrint, onPrev, 
     <article className="animate-in">
       <header className="flex flex-wrap items-start gap-3 border-b border-line/70 pb-4">
         <div className="min-w-0 flex-1 basis-56">
-          <div className="text-xs font-bold tracking-wider text-brand-700 uppercase">{fmtDate(v.visit_date, { weekday: 'long' })}</div>
-          <h3 className="text-xl font-extrabold">{fmtDate(v.visit_date, { day: 'numeric', month: 'long', year: 'numeric' })}</h3>
+          <div className="text-xs font-medium text-brand-700">{fmtDate(v.visit_date, { weekday: 'long' })}</div>
+          <h3 className="text-xl font-semibold">{fmtDate(v.visit_date, { day: 'numeric', month: 'long', year: 'numeric' })}</h3>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
             <span>Token #{v.token_no} · {v.visit_type === 'new' ? 'New' : 'Follow-up'}</span>
             {v.doctor_name && <span className="inline-flex items-center gap-1"><Stethoscope size={13} />{v.doctor_name}</span>}
@@ -91,7 +91,7 @@ export function VisitDetail({ v, onRepeatRx, printable = true, onPrint, onPrev, 
           {v.nurse_notes && <Block icon={MessageSquareText} title="Nurse note">{v.nurse_notes}</Block>}
           {v.doctor_comment && (
             <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
-              <div className="mb-1 flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase"><Lock size={12} /> Private note · only you see this</div>
+              <div className="mb-1 flex items-center gap-1.5 text-xs font-medium"><Lock size={12} /> Private note · only you see this</div>
               {v.doctor_comment}
             </div>
           )}
@@ -159,12 +159,12 @@ export default function VisitHistory({ visits, initialId, onRepeatRx, printable 
             const on = wide && v.id === sel?.id;
             return (
               <li key={v.id}>
-                {head && <div className="sticky top-0 z-10 bg-white/95 px-2 pt-2 pb-1 text-[11px] font-extrabold tracking-wider text-muted backdrop-blur">{year}</div>}
+                {head && <div className="sticky top-0 z-10 bg-white/95 px-2 pt-2 pb-1 text-[11px] font-semibold tracking-wider text-muted backdrop-blur">{year}</div>}
                 <button role="option" aria-selected={on && wide} onClick={() => { setSelId(v.id); setPhoneDetail(true); if (!wide) listRef.current?.closest(".card")?.scrollIntoView({ block: "start" }); }}
                   className={clsx('group flex w-full items-center gap-3 rounded-2xl px-2.5 py-2 text-left transition', on ? 'bg-brand-500 text-white shadow-[0_6px_16px_-8px_var(--brand-500)]' : 'hover:bg-slate-50')}>
                   <div className={clsx('w-11 shrink-0 text-center leading-tight', on ? 'text-white' : 'text-ink')}>
-                    <div className="text-[17px] font-extrabold tabular">{fmtDate(v.visit_date, { day: '2-digit' })}</div>
-                    <div className={clsx('text-[10px] font-bold uppercase', on ? 'text-white/80' : 'text-muted')}>{fmtDate(v.visit_date, { month: 'short' })}</div>
+                    <div className="text-[17px] font-semibold tabular">{fmtDate(v.visit_date, { day: '2-digit' })}</div>
+                    <div className={clsx('text-[11px] font-medium', on ? 'text-white/80' : 'text-muted')}>{fmtDate(v.visit_date, { month: 'short' })}</div>
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[14px] font-semibold">{v.diagnosis || v.complaints || 'Visit'}</div>

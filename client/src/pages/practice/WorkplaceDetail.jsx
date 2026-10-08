@@ -36,8 +36,8 @@ export default function WorkplaceDetail() {
         <div className="flex flex-wrap items-center gap-4 p-5 sm:p-6" style={{ background: `linear-gradient(120deg, ${p[100]}, ${p[50]} 60%, transparent)` }}>
           <span className="grid size-14 shrink-0 place-items-center rounded-2xl text-white shadow-soft max-sm:hidden" style={{ background: p[600] }}><Hospital size={26} /></span>
           <div className="min-w-0 flex-1 basis-60">
-            <div className="text-xs font-bold tracking-wider uppercase" style={{ color: p[800] }}>{w.kind} · {options.data.payModels[w.pay_model]}{w.share_pct ? ` ${Number(w.share_pct)}%` : ''}{!w.is_active && ' · inactive'}</div>
-            <h1 className="text-2xl font-extrabold break-words">{w.name}</h1>
+            <div className="text-xs font-medium" style={{ color: p[800] }}>{w.kind} · {options.data.payModels[w.pay_model]}{w.share_pct ? ` ${Number(w.share_pct)}%` : ''}{!w.is_active && ' · inactive'}</div>
+            <h1 className="text-2xl font-semibold break-words">{w.name}</h1>
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
               {(w.address || w.city) && <span className="inline-flex items-center gap-1"><MapPin size={13} />{[w.address, w.city].filter(Boolean).join(', ')}</span>}
               {w.contact_person && <span>{w.contact_person}</span>}
@@ -116,7 +116,7 @@ export default function WorkplaceDetail() {
         <div className="card overflow-hidden">
           <div className="scrollbar-thin overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
-              <thead className="bg-slate-50/70 text-left text-[11px] font-bold tracking-wider text-muted uppercase">
+              <thead className="bg-slate-50/70 text-left text-xs font-medium text-muted">
                 <tr><th className="px-4 py-3">Date</th><th className="px-3 py-3">Description</th><th className="px-3 py-3">Ref</th><th className="px-3 py-3 text-right">Billed</th><th className="px-3 py-3 text-right">Received</th><th className="px-4 py-3 text-right">Balance</th></tr>
               </thead>
               <tbody className="divide-y divide-line/70">

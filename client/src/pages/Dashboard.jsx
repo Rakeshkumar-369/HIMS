@@ -28,7 +28,7 @@ function Kpi({ icon: Icon, label, value, prev, cur, invert, sub }) {
           </span>
         )}
       </div>
-      <div className="mt-4 text-[26px] leading-none font-extrabold tracking-tight tabular">{value}</div>
+      <div className="mt-4 text-[26px] leading-none font-semibold tracking-tight tabular">{value}</div>
       <div className="mt-1.5 text-xs font-semibold text-muted">{label}{sub && <span className="font-normal"> · {sub}</span>}</div>
     </div>
   );
@@ -103,7 +103,7 @@ export default function Dashboard() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
-                  <div><div className="text-2xl font-extrabold tabular">{num(k.cases)}</div><div className="text-xs text-muted">cases</div></div>
+                  <div><div className="text-2xl font-semibold tabular">{num(k.cases)}</div><div className="text-xs text-muted">cases</div></div>
                 </div>
               </div>
               <div className="mt-2 flex justify-center gap-4">

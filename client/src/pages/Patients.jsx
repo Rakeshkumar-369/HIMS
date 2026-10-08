@@ -23,7 +23,7 @@ export default function Patients() {
       </div>
       <div className="card overflow-hidden">
         {data && !data.length && <Empty icon={Users} title="No patients found" text="Try another spelling, the 9-digit case ID or the mobile number." />}
-        <div className="hidden grid-cols-[2fr_1fr_1fr_1.4fr_1fr_24px] gap-4 border-b border-line bg-slate-50/70 px-5 py-3 text-[11px] font-bold tracking-wider text-muted uppercase md:grid">
+        <div className="hidden grid-cols-[2fr_1fr_1fr_1.4fr_1fr_24px] gap-4 border-b border-line bg-slate-50/70 px-5 py-3 text-xs font-medium text-muted md:grid">
           <span>Patient</span><span>Case ID</span><span>Mobile</span><span>Known case of</span><span>Last visit</span><span />
         </div>
         <ul className="divide-y divide-line/70">

@@ -61,7 +61,7 @@ function StaffPanel({ clinic }) {
   return (
     <div className="mt-4 border-t border-line pt-4">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-bold tracking-wider text-muted uppercase">Team</span>
+        <span className="text-xs font-medium text-muted">Team</span>
         {!!clinic.is_owner && <button className="text-xs font-bold text-brand-700 hover:underline" onClick={() => setOpen(true)}><UserPlus size={13} className="mr-1 inline" />Add nurse / doctor</button>}
       </div>
       <ul className="space-y-1.5">
@@ -115,7 +115,7 @@ export default function Clinics() {
             <article key={c.id} className={clsx('card overflow-hidden transition', active && 'ring-2 ring-offset-2')} style={{ '--tw-ring-color': p[400] }}>
               <div className="relative h-24 p-5" style={{ background: `linear-gradient(120deg, ${p[100]}, ${p[200]} 55%, ${p[300]})` }}>
                 <div className="flex items-start justify-between">
-                  <span className="grid size-12 place-items-center rounded-2xl text-sm font-extrabold text-white shadow-soft" style={{ background: p[600] }}>{c.code}</span>
+                  <span className="grid size-12 place-items-center rounded-2xl text-sm font-semibold text-white shadow-soft" style={{ background: p[600] }}>{c.code}</span>
                   {active ? <span className="inline-flex items-center gap-1 rounded-full bg-white/80 px-2.5 py-1 text-xs font-bold" style={{ color: p[800] }}><CheckCircle2 size={13} /> Active</span>
                     : <button className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold hover:bg-white" style={{ color: p[800] }} onClick={() => setClinicId(c.id)}>Switch to</button>}
                 </div>
@@ -138,7 +138,7 @@ export default function Clinics() {
                   <div className="rounded-2xl bg-slate-50 py-2"><div className="font-bold tabular">{inr(c.consultation_fee)}</div><div className="text-[11px] text-muted">fee</div></div>
                 </div>
                 <div className="mt-4">
-                  <div className="mb-2 text-xs font-bold tracking-wider text-muted uppercase">Theme</div>
+                  <div className="mb-2 text-xs font-medium text-muted">Theme</div>
                   <ThemePicker size="sm" value={c.theme} onChange={async (t) => { try { saved(await api.patch(`/clinics/${c.id}`, { theme: t })); } catch (e) { toast.error(e.message); } }} />
                 </div>
                 <StaffPanel clinic={c} />

@@ -35,9 +35,9 @@ export default function Workplaces() {
                 <ChevronRight size={18} className="text-slate-400 group-hover:text-brand-600" />
               </div>
               <div className="grid grid-cols-3 gap-2 p-4 text-center">
-                <div><div className="text-[11px] font-bold text-muted uppercase">Pending</div><div className={clsx('font-extrabold tabular', w.overdue > 0 ? 'text-rose-600' : 'text-ink')}>{inr(w.outstanding)}</div></div>
-                <div><div className="text-[11px] font-bold text-muted uppercase">Received</div><div className="font-extrabold text-emerald-700 tabular">{inr(w.received)}</div></div>
-                <div><div className="text-[11px] font-bold text-muted uppercase">Services</div><div className="font-extrabold tabular">{w.services}</div></div>
+                <div><div className="text-xs text-muted">Pending</div><div className="font-semibold tabular">{inr(w.outstanding)}</div></div>
+                <div><div className="text-xs text-muted">Received</div><div className="font-semibold tabular">{inr(w.received)}</div></div>
+                <div><div className="text-xs text-muted">Services</div><div className="font-semibold tabular">{w.services}</div></div>
               </div>
               <div className="border-t border-line/70 px-4 py-2.5 text-xs text-muted">
                 {w.overdue > 0 ? <span className="font-semibold text-rose-600">{inr(w.overdue)} overdue · </span> : null}

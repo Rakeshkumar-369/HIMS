@@ -77,7 +77,7 @@ export default function AdminDoctorNew() {
                 <span className="font-semibold text-muted">May own</span>
                 <div className="inline-flex items-center rounded-2xl border border-line bg-white">
                   <button type="button" className="p-2 text-muted hover:text-ink" onClick={() => setLimit(max - 1)} aria-label="Fewer"><Minus size={15} /></button>
-                  <span className="w-8 text-center font-extrabold tabular">{max}</span>
+                  <span className="w-8 text-center font-semibold tabular">{max}</span>
                   <button type="button" className="p-2 text-muted hover:text-ink" onClick={() => setLimit(max + 1)} aria-label="More"><Plus size={15} /></button>
                 </div>
                 <span className="font-semibold text-muted">clinic{max === 1 ? '' : 's'}</span>
@@ -88,7 +88,7 @@ export default function AdminDoctorNew() {
               {clinics.map((c, i) => (
                 <div key={i} className="rounded-2xl border border-line p-4">
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="text-xs font-bold tracking-wider text-muted uppercase">Clinic {i + 1}</span>
+                    <span className="text-xs font-medium text-muted">Clinic {i + 1}</span>
                     <button type="button" className="btn-ghost p-1.5 text-rose-500" onClick={() => setClinics((cs) => cs.filter((_, j) => j !== i))} aria-label="Remove"><Trash2 size={15} /></button>
                   </div>
                   <div className="grid gap-3 md:grid-cols-2">

@@ -79,7 +79,7 @@ export default function Earnings() {
           <div className="border-b border-line/70 px-5 py-4"><h3 className="font-bold">By workplace</h3><p className="text-xs text-muted">Billed / received in this period · pending as of today</p></div>
           <div className="scrollbar-thin overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
-              <thead className="bg-slate-50/70 text-left text-[11px] font-bold tracking-wider text-muted uppercase">
+              <thead className="bg-slate-50/70 text-left text-xs font-medium text-muted">
                 <tr><th className="px-5 py-3">Workplace</th><th className="px-3 py-3 text-right">Services</th><th className="px-3 py-3 text-right">Billed</th><th className="px-3 py-3 text-right">Received</th><th className="px-3 py-3 text-right">TDS</th><th className="px-5 py-3 text-right">Pending</th></tr>
               </thead>
               <tbody className="divide-y divide-line/70">
@@ -90,7 +90,7 @@ export default function Earnings() {
                     <td className="px-3 py-3 text-right tabular">{inr(w.billed)}</td>
                     <td className="px-3 py-3 text-right text-emerald-700 tabular">{inr(w.received)}</td>
                     <td className="px-3 py-3 text-right tabular">{inr(w.tds)}</td>
-                    <td className={clsx('px-5 py-3 text-right font-bold tabular', w.overdue > 0 && 'text-rose-600')}>{inr(w.outstanding)}</td>
+                    <td className="px-5 py-3 text-right font-semibold tabular">{inr(w.outstanding)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -102,7 +102,7 @@ function DoctorEditor({ data, reload }) {
         <div className="flex flex-wrap items-center gap-5 bg-gradient-to-r from-brand-100 via-brand-50 to-white p-6">
           <Avatar name={d.full_name} className="size-16 bg-white text-xl" />
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2"><h1 className="truncate text-2xl font-extrabold">{d.full_name}</h1><DoctorStatus d={d} /></div>
+            <div className="flex flex-wrap items-center gap-2"><h1 className="truncate text-2xl font-semibold">{d.full_name}</h1><DoctorStatus d={d} /></div>
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
               <span className="inline-flex items-center gap-1"><Mail size={13} />{d.email}</span>
               {d.phone && <span className="inline-flex items-center gap-1"><Phone size={13} />{d.phone}</span>}
@@ -139,7 +139,7 @@ function DoctorEditor({ data, reload }) {
             <span className="text-sm font-semibold">Clinics this doctor may own</span>
             <div className="inline-flex items-center rounded-2xl border border-line bg-white">
               <button type="button" className="p-2 text-muted hover:text-ink disabled:opacity-30" disabled={max <= clinics.length} onClick={() => setMax(max - 1)} aria-label="Fewer"><Minus size={15} /></button>
-              <span className="w-8 text-center font-extrabold tabular">{max}</span>
+              <span className="w-8 text-center font-semibold tabular">{max}</span>
               <button type="button" className="p-2 text-muted hover:text-ink" onClick={() => setMax(Math.min(50, max + 1))} aria-label="More"><Plus size={15} /></button>
             </div>
             <span className="text-xs text-muted">{clinics.length} in use</span>
@@ -157,7 +157,7 @@ function DoctorEditor({ data, reload }) {
                 const p = palette(c.theme, mode);
                 return (
                   <li key={c.id} className="flex items-center gap-3 rounded-2xl border border-line p-3">
-                    <span className="grid h-10 min-w-10 place-items-center rounded-xl px-1.5 text-[11px] font-extrabold text-white" style={{ background: p[600] }}>{c.code}</span>
+                    <span className="grid h-10 min-w-10 place-items-center rounded-xl px-1.5 text-[11px] font-semibold text-white" style={{ background: p[600] }}>{c.code}</span>
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-bold">{c.name}</div>
                       <div className="truncate text-xs text-muted">{[c.city, `${num(c.patient_count)} patients`, `${c.staff_count} team`, inr(c.consultation_fee)].filter(Boolean).join(' · ')}</div>

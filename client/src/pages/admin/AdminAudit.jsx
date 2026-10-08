@@ -38,7 +38,7 @@ export default function AdminAudit() {
           </ul>
           <div className="scrollbar-thin overflow-x-auto max-md:hidden">
             <table className="w-full min-w-[760px] text-sm">
-              <thead className="bg-slate-50/70 text-left text-[11px] font-bold tracking-wider text-muted uppercase">
+              <thead className="bg-slate-50/70 text-left text-xs font-medium text-muted">
                 <tr><th className="px-5 py-3">When</th><th className="px-3 py-3">What</th><th className="px-3 py-3">Who</th><th className="px-3 py-3">Details</th><th className="px-5 py-3">IP address</th></tr>
               </thead>
               <tbody className="divide-y divide-line/70">

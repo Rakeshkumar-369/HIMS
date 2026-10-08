@@ -28,7 +28,7 @@ export default function AdminLayout() {
         <div className="flex items-center gap-2.5">
           <Logo />
           <div className="leading-tight">
-            <div className="text-[17px] font-extrabold tracking-tight">CareNest</div>
+            <div className="text-[17px] font-bold tracking-tight">CareNest</div>
             <div className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-700"><ShieldCheck size={12} /> Platform admin</div>
           </div>
         </div>

@@ -13,7 +13,7 @@ export function Wordmark() {
     <div className="flex items-center gap-2.5">
       <Logo />
       <div className="leading-tight">
-        <div className="text-[17px] font-extrabold tracking-tight">CareNest</div>
+        <div className="text-[17px] font-bold tracking-tight">CareNest</div>
         <div className="text-[11px] font-medium text-muted">Clinic OS</div>
       </div>
     </div>

@@ -22,8 +22,8 @@ const addDays = (iso, n) => { const d = new Date(`${iso}T00:00:00`); d.setDate(d
 function Vital({ label, value, unit, flag }) {
   return (
     <div className={clsx('rounded-2xl px-3 py-2', flag === 'high' ? 'bg-rose-50' : flag === 'low' ? 'bg-amber-50' : 'bg-slate-50')}>
-      <div className="text-[10px] font-bold tracking-wider text-muted uppercase">{label}</div>
-      <div className={clsx('text-[17px] font-extrabold tabular', flag === 'high' ? 'text-rose-700' : flag === 'low' ? 'text-amber-700' : 'text-ink')}>
+      <div className="text-[11px] font-medium text-muted">{label}</div>
+      <div className={clsx('text-[17px] font-semibold tabular', flag === 'high' ? 'text-rose-700' : flag === 'low' ? 'text-amber-700' : 'text-ink')}>
         {value ?? '—'}<span className="ml-0.5 text-[11px] font-medium text-muted">{value != null && unit}</span>
       </div>
     </div>
@@ -84,7 +84,7 @@ function WaitingRoom({ clinicId }) {
     <div className="card animate-in mx-auto max-w-2xl overflow-hidden">
       <div className="bg-gradient-to-br from-brand-100 via-brand-50 to-white px-8 py-12 text-center">
         <div className="mx-auto mb-5 grid size-20 place-items-center rounded-[28px] bg-white text-brand-500 shadow-soft"><Coffee size={34} /></div>
-        <h2 className="text-2xl font-extrabold">Ready for the next patient</h2>
+        <h2 className="text-2xl font-semibold">Ready for the next patient</h2>
         <p className="mx-auto mt-2 max-w-md text-muted">When the nurse taps <b>Display to doctor</b>, the case opens here automatically — on your laptop or phone.</p>
         <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold shadow-soft">
           <span className="live-dot size-2 rounded-full bg-emerald-500" /> Listening · {waiting.length} waiting
@@ -92,7 +92,7 @@ function WaitingRoom({ clinicId }) {
       </div>
       {!!waiting.length && (
         <div className="p-6">
-          <div className="mb-3 text-xs font-bold tracking-wider text-muted uppercase">No nurse today? Call directly</div>
+          <div className="mb-3 text-xs font-medium text-muted">No nurse today? Call directly</div>
           <ul className="space-y-2">
             {waiting.slice(0, 4).map((v) => (
               <li key={v.id} className="flex items-center gap-3 rounded-2xl bg-slate-50 px-3 py-2.5">
@@ -219,8 +219,8 @@ function ConsultEditor({ data }) {
             <div className="flex items-center gap-3">
               <Avatar name={p.full_name} className="size-14 bg-white text-lg" />
               <div className="min-w-0">
-                <div className="text-xs font-bold tracking-wider text-brand-700 uppercase">Token #{v.token_no} · {v.visit_type === 'new' ? 'New' : 'Follow-up'}</div>
-                <div className="truncate text-xl font-extrabold">{p.full_name}</div>
+                <div className="text-xs font-medium text-brand-700">Token #{v.token_no} · {v.visit_type === 'new' ? 'New' : 'Follow-up'}</div>
+                <div className="truncate text-xl font-semibold">{p.full_name}</div>
                 <div className="text-sm text-slate-600">{p.age} yrs · {p.gender}{p.blood_group && ` · ${p.blood_group}`}</div>
               </div>
             </div>
@@ -232,7 +232,7 @@ function ConsultEditor({ data }) {
           <div className="space-y-4 p-5">
             {p.allergies && <div className="flex items-center gap-2 rounded-2xl bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700"><AlertTriangle size={16} /> Allergy: {p.allergies}</div>}
             {!!p.known_conditions.length && (
-              <div><div className="mb-1.5 text-[11px] font-bold tracking-wider text-muted uppercase">Known case of</div>
+              <div><div className="mb-1.5 text-xs font-medium text-muted">Known case of</div>
                 <div className="flex flex-wrap gap-1.5">{p.known_conditions.map((c) => <span key={c} className="rounded-full bg-brand-100 px-2.5 py-1 text-xs font-bold text-brand-800">{c}</span>)}</div></div>
             )}
             <div className="grid grid-cols-3 gap-2">
@@ -245,10 +245,10 @@ function ConsultEditor({ data }) {
               {v.blood_sugar && <Vital label="RBS" value={v.blood_sugar} unit="mg/dL" flag={vitalFlag('blood_sugar', v.blood_sugar)} />}
             </div>
             <div>
-              <div className="mb-1 text-[11px] font-bold tracking-wider text-muted uppercase">Complaints {v.complaint_duration && `· ${v.complaint_duration}`}</div>
+              <div className="mb-1 text-xs font-medium text-muted">Complaints {v.complaint_duration && `· ${v.complaint_duration}`}</div>
               <p className="text-[15px] font-semibold">{v.complaints || '—'}</p>
             </div>
-            {v.current_medicines && <div><div className="mb-1 text-[11px] font-bold tracking-wider text-muted uppercase">Current medicines</div><p className="text-sm">{v.current_medicines}</p></div>}
+            {v.current_medicines && <div><div className="mb-1 text-xs font-medium text-muted">Current medicines</div><p className="text-sm">{v.current_medicines}</p></div>}
             {v.nurse_notes && <div className="rounded-2xl bg-amber-50 px-3 py-2 text-sm text-amber-900"><b>Nurse:</b> {v.nurse_notes}</div>}
           </div>
         </div>
@@ -341,7 +341,7 @@ function ConsultEditor({ data }) {
 
         <section className="rounded-3xl border border-amber-200 bg-amber-50 p-5 sm:p-6">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-[13px] font-bold tracking-wide text-amber-800 uppercase"><Lock size={15} /> Private note to self</h2>
+            <h2 className="flex items-center gap-2 text-[13px] font-medium text-amber-800"><Lock size={15} /> Private note to self</h2>
             <span className="text-xs font-medium text-amber-700">Never printed · hidden from nurse & patient</span>
           </div>
           <textarea rows={2} className="w-full resize-y rounded-2xl border border-amber-200 bg-white/60 px-3.5 py-2.5 text-[15px] outline-none focus:ring-4 focus:ring-amber-100" placeholder="Review later: e.g. consider adding statin if LDL > 130" value={f.doctor_comment} onChange={set('doctor_comment')} />

@@ -54,7 +54,7 @@ function ClinicSwitcher() {
   return (
     <div className="relative" ref={ref}>
       <button onClick={() => setOpen((o) => !o)} className="flex max-w-[60vw] items-center gap-2.5 rounded-2xl border border-line bg-white/80 py-1.5 pr-3 pl-1.5 text-left transition hover:border-brand-300 sm:max-w-sm">
-        <span className="grid h-8 min-w-8 shrink-0 place-items-center rounded-xl bg-brand-500 px-1.5 text-[10px] font-extrabold text-white">{clinic.code}</span>
+        <span className="grid h-8 min-w-8 shrink-0 place-items-center rounded-xl bg-brand-500 px-1.5 text-[10px] font-semibold text-white">{clinic.code}</span>
         <span className="min-w-0">
           <span className="block truncate text-sm font-bold">{clinic.name}</span>
           <span className="block truncate text-[11px] text-muted">{clinics.length > 1 ? `${clinics.length} clinics · tap to switch` : clinic.city || 'Your clinic'}</span>
@@ -63,7 +63,7 @@ function ClinicSwitcher() {
       </button>
       {open && (
         <div className="animate-pop absolute top-full left-0 z-40 mt-2 w-80 rounded-3xl border border-line bg-white p-2 shadow-lift">
-          <div className="px-3 pt-2 pb-1 text-[11px] font-bold tracking-wider text-muted uppercase">Switch clinic</div>
+          <div className="px-3 pt-2 pb-1 text-xs font-medium text-muted">Switch clinic</div>
           {clinics.map((c) => (
             <button key={c.id} onClick={() => { setClinicId(c.id); setOpen(false); }}
               className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left hover:bg-slate-50">
@@ -78,7 +78,7 @@ function ClinicSwitcher() {
           {isDoctor && (
             <>
               <div className="mx-3 my-2 border-t border-line" />
-              <div className="flex items-center gap-2 px-3 pb-2 text-[11px] font-bold tracking-wider text-muted uppercase"><Palette size={13} /> Colour for this clinic</div>
+              <div className="flex items-center gap-2 px-3 pb-2 text-xs font-medium text-muted"><Palette size={13} /> Colour for this clinic</div>
               <div className="px-3 pb-3"><ThemePicker size="sm" value={clinic.theme} onChange={setTheme} /></div>
               <Link to="/app/clinics" onClick={() => setOpen(false)} className="btn-soft w-full">Manage clinics</Link>
             </>
@@ -129,18 +129,18 @@ export default function AppShell() {
 
   const link = ({ to, label, icon: Icon, hint }) => (
         <NavLink key={to} to={to} end={to === '/app/vendors'}
-          className={({ isActive }) => clsx('group flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition',
-            isActive ? 'bg-brand-500 text-white shadow-[0_8px_20px_-8px_var(--brand-500)]' : 'text-slate-600 hover:bg-white hover:text-ink')}>
+          className={({ isActive }) => clsx('group flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm transition',
+            isActive ? 'bg-brand-50 font-medium text-brand-800' : 'text-slate-600 hover:bg-white hover:text-ink')}>
           {({ isActive }) => (
             <>
-              <Icon size={19} strokeWidth={isActive ? 2.4 : 2} />
+              <Icon size={19} strokeWidth={isActive ? 2.1 : 1.8} className={isActive ? 'text-brand-600' : undefined} />
               <span className="flex-1">{label}</span>
-              <span className={clsx('text-[11px] font-medium', isActive ? 'text-white/75' : 'text-slate-400 opacity-0 group-hover:opacity-100')}>{hint}</span>
+              <span className={clsx('text-[11px] font-medium', isActive ? 'text-brand-600/70' : 'text-slate-400 opacity-0 group-hover:opacity-100')}>{hint}</span>
             </>
           )}
         </NavLink>
   );
-  const heading = (text) => <div className="mt-3 mb-1 px-3 text-[11px] font-bold tracking-wider text-muted uppercase first:mt-0">{text}</div>;
+  const heading = (text) => <div className="mt-3 mb-1 px-3 text-xs font-medium text-muted first:mt-0">{text}</div>;
   const navList = (
     <nav className="flex flex-col gap-1">
       {clinicItems.length > 0 && practiceItems.length > 0 && heading('Clinic')}

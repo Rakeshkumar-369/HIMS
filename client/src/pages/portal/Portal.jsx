@@ -50,7 +50,7 @@ export default function Portal() {
       <header className="sticky top-0 z-20 border-b border-line/60 bg-white/70 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
           <Logo className="size-8" />
-          <div className="flex-1 leading-tight"><div className="text-sm font-extrabold">{clinic.name}</div><div className="text-[11px] text-muted">Patient portal</div></div>
+          <div className="flex-1 leading-tight"><div className="text-sm font-semibold">{clinic.name}</div><div className="text-[11px] text-muted">Patient portal</div></div>
           <ModeToggle />
           <button className="btn-ghost" onClick={logout}><LogOut size={16} /> <span className="max-sm:hidden">Sign out</span></button>
         </div>
@@ -61,8 +61,8 @@ export default function Portal() {
             <Avatar name={p.full_name} className="size-16 bg-white text-xl" />
             <div className="min-w-0 flex-1">
               <div className="text-sm text-slate-600">Hello,</div>
-              <h1 className="truncate text-2xl font-extrabold">{p.full_name}</h1>
-              <div className="font-mono text-xs font-bold tracking-widest text-brand-700">CASE #{caseFmt(p.case_no)} · {p.age} yrs · {p.gender}</div>
+              <h1 className="truncate text-2xl font-semibold">{p.full_name}</h1>
+              <div className="text-sm text-brand-700">Case ID <span className="font-mono font-medium tracking-wider">{caseFmt(p.case_no)}</span> · {p.age} yrs · {p.gender}</div>
             </div>
             <button className="btn-primary py-3 max-sm:w-full" onClick={() => { setAutoDl(true); setSheet('full'); }} disabled={!visits.length}>
               <Download size={17} /> Download full case sheet (PDF)

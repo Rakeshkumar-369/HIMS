@@ -152,7 +152,7 @@ export default function WorkLog() {
             <div><dt className="text-xs text-muted">Patient</dt><dd className="font-semibold">{[editing.patient_name, editing.patient_age && `${editing.patient_age} y`, editing.patient_gender].filter(Boolean).join(', ') || '—'}</dd></div>
             <div><dt className="text-xs text-muted">Hospital ref</dt><dd className="font-semibold">{editing.hospital_ref || '—'}</dd></div>
             <div><dt className="text-xs text-muted">Mobile</dt><dd className="font-semibold">{editing.patient_phone || '—'}</dd></div>
-            <div><dt className="text-xs text-muted">Billed</dt><dd className="text-lg font-extrabold tabular">{inr(editing.amount_billed)}</dd></div>
+            <div><dt className="text-xs text-muted">Billed</dt><dd className="text-lg font-semibold tabular">{inr(editing.amount_billed)}</dd></div>
             <div><dt className="text-xs text-muted">Status</dt><dd className="flex flex-wrap items-center gap-2"><Pill status={editing.status} />{editing.open > 0 && <span className="text-xs text-muted">{inr(editing.open)} pending · due {fmtDate(editing.due_on)}</span>}</dd></div>
             {editing.notes && <div className="col-span-2"><dt className="text-xs text-muted">Note</dt><dd>{editing.notes}</dd></div>}
           </dl>

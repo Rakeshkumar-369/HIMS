@@ -66,11 +66,11 @@ export default function Vendors({ personal = false }) {
               </div>
               <div className="flex items-end justify-between gap-3">
                 <div>
-                  <div className="text-[11px] font-bold tracking-wide text-muted uppercase">Outstanding</div>
-                  <div className={clsx('text-xl font-extrabold tabular', v.overdue > 0 ? 'text-rose-600' : v.outstanding > 0 ? 'text-ink' : 'text-emerald-700')}>{v.outstanding > 0 ? inr(v.outstanding) : 'All paid'}</div>
+                  <div className="text-xs text-muted">Outstanding</div>
+                  <div className={clsx('text-xl font-semibold tabular', v.outstanding > 0 ? 'text-ink' : 'text-emerald-700')}>{v.outstanding > 0 ? inr(v.outstanding) : 'All paid'}</div>
                 </div>
                 <div className="text-right text-xs text-muted">
-                  {v.overdue > 0 && <div className="font-bold text-rose-600">{inr(v.overdue)} overdue</div>}
+                  {v.overdue > 0 && <div className="inline-flex items-center gap-1.5 text-slate-600"><span className="size-1.5 rounded-full bg-rose-400" />{inr(v.overdue)} past due date</div>}
                   {v.pending_delivery > 0 && <div>{inr(v.pending_delivery)} awaiting delivery</div>}
                   <div>{v.last_order ? `Last order ${fmtShort(v.last_order.slice(0, 10))}` : 'No orders yet'}</div>
                 </div>

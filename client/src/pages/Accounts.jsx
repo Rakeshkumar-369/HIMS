@@ -41,9 +41,9 @@ export default function Accounts() {
     <div className="animate-in">
       <PageHeader eyebrow={clinic.name} title="Accounts" subtitle="Consultation fees and vendor payments are added automatically. Record everything else here." actions={<Segmented options={PERIODS} value={days} onChange={setDays} />} />
       <div className="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="card p-3 sm:p-5"><div className="text-xs font-semibold text-muted">Income</div><div className="mt-1 text-[15px] font-extrabold sm:text-2xl text-emerald-700 tabular">{inr(inc)}</div><div className="mt-1 text-xs text-muted max-sm:hidden">incl. {inr(data.consultation.amount)} from {data.consultation.visits} consultations</div></div>
-        <div className="card p-3 sm:p-5"><div className="text-xs font-semibold text-muted">Outflow</div><div className="mt-1 text-[15px] font-extrabold sm:text-2xl text-rose-600 tabular">{inr(exp)}</div></div>
-        <div className="card p-3 sm:p-5"><div className="text-xs font-semibold text-muted">Net</div><div className={clsx('mt-1 text-[15px] font-extrabold sm:text-2xl tabular', inc - exp >= 0 ? 'text-ink' : 'text-rose-600')}>{inr(inc - exp)}</div></div>
+        <div className="card p-3 sm:p-5"><div className="flex items-center gap-1.5 text-xs text-muted"><span className="size-1.5 rounded-full bg-emerald-400" />Income</div><div className="mt-1 text-[15px] font-semibold sm:text-2xl tabular">{inr(inc)}</div><div className="mt-1 text-xs text-muted max-sm:hidden">incl. {inr(data.consultation.amount)} from {data.consultation.visits} consultations</div></div>
+        <div className="card p-3 sm:p-5"><div className="flex items-center gap-1.5 text-xs text-muted"><span className="size-1.5 rounded-full bg-amber-400" />Outflow</div><div className="mt-1 text-[15px] font-semibold sm:text-2xl tabular">{inr(exp)}</div></div>
+        <div className="card p-3 sm:p-5"><div className="text-xs text-muted">Net</div><div className={clsx('mt-1 text-[15px] font-semibold sm:text-2xl tabular', inc - exp >= 0 ? 'text-ink' : 'text-rose-600')}>{inr(inc - exp)}</div></div>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[380px_1fr]">

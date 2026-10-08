@@ -10,7 +10,7 @@ const FLAG_CLS = { high: 'border-rose-300 bg-rose-50/60 focus:border-rose-400 fo
 function VitalBox({ label, unit, flag, children }) {
   return (
     <div className={clsx('rounded-2xl border bg-white px-3 pt-2 pb-2.5 transition focus-within:border-brand-400 focus-within:ring-4 focus-within:ring-brand-100', flag ? FLAG_CLS[flag] : 'border-line')}>
-      <div className="flex items-center justify-between text-[11px] font-bold tracking-wide text-muted uppercase">
+      <div className="flex items-center justify-between text-xs font-medium text-muted">
         <span>{label}</span>
         {flag && <span className={clsx('rounded-full px-1.5 text-[10px]', flag === 'high' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700')}>{flag}</span>}
       </div>
@@ -40,7 +40,7 @@ export function VitalsInputs({ value, onChange }) {
       <VitalBox label="Height" unit="cm">{field('height_cm', '165')}</VitalBox>
       <VitalBox label="Sugar (RBS)" unit="mg/dL" flag={vitalFlag('blood_sugar', value.blood_sugar)}>{field('blood_sugar', '110')}</VitalBox>
       <div className={clsx('flex flex-col justify-center rounded-2xl px-3 py-2', b ? 'bg-brand-50' : 'bg-slate-50')}>
-        <div className="text-[11px] font-bold tracking-wide text-muted uppercase">BMI (auto)</div>
+        <div className="text-xs font-medium text-muted">BMI (auto)</div>
         <div className="text-xl font-bold tabular">{b ?? '—'}<span className="ml-1 text-xs font-medium text-muted">{b ? (b < 18.5 ? 'Under' : b < 25 ? 'Normal' : b < 30 ? 'Over' : 'Obese') : ''}</span></div>
       </div>
     </div>

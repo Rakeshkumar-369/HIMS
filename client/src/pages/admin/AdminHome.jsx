@@ -9,7 +9,7 @@ function Tile({ icon: Icon, label, value, sub }) {
   return (
     <div className="card p-5">
       <div className="grid size-10 place-items-center rounded-2xl bg-brand-100 text-brand-700"><Icon size={19} /></div>
-      <div className="mt-4 text-[28px] leading-none font-extrabold tabular">{value}</div>
+      <div className="mt-4 text-[28px] leading-none font-semibold tabular">{value}</div>
       <div className="mt-1.5 text-xs font-semibold text-muted">{label}{sub && <span className="font-normal"> · {sub}</span>}</div>
     </div>
   );

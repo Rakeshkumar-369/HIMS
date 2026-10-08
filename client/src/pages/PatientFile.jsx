@@ -69,8 +69,8 @@ export default function PatientFile() {
         <div className="flex flex-wrap items-center gap-4 bg-gradient-to-r from-brand-100 via-brand-50 to-white p-5 sm:gap-5 sm:p-6">
           <Avatar name={p.full_name} className="size-14 bg-white text-lg sm:size-16 sm:text-xl" />
           <div className="min-w-0 flex-1">
-            <div className="font-mono text-xs font-bold tracking-widest text-brand-700">CASE #{caseFmt(p.case_no)}{home.id !== clinicId && <span className="ml-2 rounded-full bg-sky-50 px-2 py-0.5 font-sans tracking-normal text-sky-700">Registered at {home.name}</span>}</div>
-            <h1 className="truncate text-2xl font-extrabold">{p.full_name}</h1>
+            <div className="text-sm text-brand-700">Case ID <span className="font-mono font-medium tracking-wider">{caseFmt(p.case_no)}</span>{home.id !== clinicId && <span className="ml-2 rounded-full bg-sky-50 px-2 py-0.5 font-sans tracking-normal text-sky-700">Registered at {home.name}</span>}</div>
+            <h1 className="truncate text-2xl font-semibold">{p.full_name}</h1>
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
               <span>{p.age} yrs · {p.gender}</span>
               {p.phone && <span className="inline-flex items-center gap-1"><Phone size={13} />{p.phone}</span>}

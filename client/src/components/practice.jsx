@@ -134,7 +134,7 @@ export function ServiceForm({ service, options, defaultWorkplaceId, onClose, onS
           )}
         </Field>
         <div className="rounded-2xl border border-line p-4">
-          <div className="mb-3 text-[11px] font-bold tracking-wider text-muted uppercase">Patient (optional)</div>
+          <div className="mb-3 text-xs font-medium text-muted">Patient (optional)</div>
           <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
             <Field label="Name"><input className="input" value={f.patient_name} onChange={s('patient_name')} /></Field>
             <Field label="Age"><input className="input tabular" type="number" min="0" max="120" inputMode="numeric" value={f.patient_age} onChange={s('patient_age')} /></Field>
@@ -192,7 +192,7 @@ export function PracticePaymentForm({ workplace, outstanding, onClose, onSaved }
         <div className="rounded-2xl bg-brand-50 px-4 py-3 text-sm">Pending from them: <b className="tabular">{inr(outstanding)}</b> · this payment settles the oldest services first</div>
         {tdsPct > 0 && (
           <div className="rounded-2xl border border-line p-3">
-            <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-muted uppercase"><Calculator size={13} /> Work out TDS ({tdsPct}%)</div>
+            <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-muted"><Calculator size={13} /> Work out TDS ({tdsPct}%)</div>
             <input className="input tabular" type="number" min="0" inputMode="decimal" placeholder="Gross amount on their statement" value={gross} onChange={(e) => applyGross(e.target.value)} />
           </div>
         )}

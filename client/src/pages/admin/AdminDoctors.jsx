@@ -21,7 +21,7 @@ export default function AdminDoctors() {
       </div>
       <div className="card overflow-hidden">
         {data && !data.length && <Empty icon={Stethoscope} title="No doctors found" action={<Link to="/admin/doctors/new" className="btn-primary"><UserPlus size={16} /> Create the first one</Link>} />}
-        <div className="hidden grid-cols-[2fr_1.3fr_0.8fr_0.8fr_1fr_1fr_20px] gap-4 border-b border-line bg-slate-50/70 px-5 py-3 text-[11px] font-bold tracking-wider text-muted uppercase lg:grid">
+        <div className="hidden grid-cols-[2fr_1.3fr_0.8fr_0.8fr_1fr_1fr_20px] gap-4 border-b border-line bg-slate-50/70 px-5 py-3 text-xs font-medium text-muted lg:grid">
           <span>Doctor</span><span>Contact</span><span>Clinics</span><span>Patients</span><span>Status</span><span>Last sign-in</span><span />
         </div>
         <ul className="divide-y divide-line/70">

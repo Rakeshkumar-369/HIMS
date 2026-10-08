@@ -19,7 +19,7 @@ export default function AuthLayout({ children, title, subtitle }) {
           <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-brand-700 shadow-soft">
             <HeartPulse size={14} /> Built for small & busy clinics
           </div>
-          <h1 className="text-[42px] leading-[1.1] font-extrabold tracking-tight text-ink">
+          <h1 className="text-[42px] leading-[1.1] font-semibold tracking-tight text-ink">
             Calm software for <span className="text-brand-600">busy clinics.</span>
           </h1>
           <p className="mt-4 text-lg text-slate-600">One doctor, one nurse or a full team — CareNest keeps the queue moving with far fewer clicks.</p>
@@ -38,7 +38,7 @@ export default function AuthLayout({ children, title, subtitle }) {
         <ModeToggle className="absolute top-4 right-4" />
         <div className="mb-8 lg:hidden"><Wordmark /></div>
         <div className="animate-in w-full max-w-md">
-          <h2 className="text-[28px] font-extrabold tracking-tight">{title}</h2>
+          <h2 className="text-[28px] font-semibold tracking-tight">{title}</h2>
           {subtitle && <p className="mt-1.5 text-muted">{subtitle}</p>}
           <div className="mt-8">{children}</div>
         </div>
