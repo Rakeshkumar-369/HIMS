@@ -3,14 +3,14 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import clsx from 'clsx';
 import {
-  UserPlus, MonitorUp, Printer, Undo2, MoreHorizontal, Pencil, XCircle, Clock, Stethoscope, Users, CheckCircle2, IndianRupee, Siren,
+  UserPlus, MonitorUp, Printer, Undo2, Pencil, XCircle, Clock, Stethoscope, Users, CheckCircle2, IndianRupee, Siren,
   CalendarDays, ArrowRight, Sparkles, FileText, Truck,
 } from 'lucide-react';
 import { useAuth } from '../context/authCtx';
 import { api } from '../lib/api';
 import { useFetch, useLiveEvents } from '../lib/hooks';
 import { fmtDay, fmtTime, todayISO, caseFmt, inr, vitalFlag, fmtShort } from '../lib/format';
-import { PageHeader, PageLoader, Empty, Avatar } from '../components/ui';
+import { PageHeader, PageLoader, Empty, Avatar, ActionMenu } from '../components/ui';
 import VisitIntakeModal from '../components/VisitIntakeModal';
 
 const since = (ts) => {
@@ -23,7 +23,7 @@ function Stat({ icon: Icon, label, value, tone }) {
   return (
     <div className="card flex items-center gap-3.5 p-4">
       <div className={clsx('grid size-11 place-items-center rounded-2xl', tone)}><Icon size={20} /></div>
-      <div><div className="text-2xl leading-none font-extrabold tabular">{value}</div><div className="mt-1 text-xs font-semibold text-muted">{label}</div></div>
+      <div><div className="text-2xl leading-none font-semibold tabular">{value}</div><div className="mt-1 text-xs text-muted">{label}</div></div>
     </div>
   );
 }
@@ -41,28 +41,10 @@ function VitalsMini({ v }) {
   return (
     <div className="flex flex-wrap gap-1">
       {items.map((i) => (
-        <span key={i.k} className={clsx('rounded-lg px-1.5 py-0.5 text-[11px] font-semibold tabular', i.f === 'high' ? 'bg-rose-50 text-rose-700' : i.f === 'low' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600')}>
+        <span key={i.k} className={clsx('rounded-lg px-1.5 py-0.5 text-[11px] font-medium tabular', i.f === 'high' ? 'bg-rose-50 text-rose-700' : i.f === 'low' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600')}>
           {i.k} {i.val}
         </span>
       ))}
-    </div>
-  );
-}
-
-function RowMenu({ items }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative">
-      <button className="btn-ghost p-2" onClick={() => setOpen(!open)} onBlur={() => setTimeout(() => setOpen(false), 150)} aria-label="Visit actions"><MoreHorizontal size={18} /></button>
-      {open && (
-        <div className="animate-pop absolute right-0 z-20 mt-1 w-48 rounded-2xl border border-line bg-white p-1.5 shadow-lift">
-          {items.map(({ label, icon: Icon, onClick, danger }) => (
-            <button key={label} onMouseDown={onClick} className={clsx('flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium hover:bg-slate-50', danger && 'text-rose-600')}>
-              <Icon size={16} /> {label}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -104,19 +86,6 @@ export default function Today() {
           <Link to="/app/register" className="btn-primary max-lg:hidden"><UserPlus size={17} /> New case</Link>
         </>} />
 
-      {dues.data && (dues.data.overdue > 0 || dues.data.due_soon > 0) && (
-        <Link to="/app/vendors" className={clsx('card mb-4 flex items-center gap-3 p-4 transition hover:shadow-lift', dues.data.overdue > 0 ? 'border-rose-200' : 'border-amber-200')}>
-          <span className={clsx('grid size-10 shrink-0 place-items-center rounded-2xl', dues.data.overdue > 0 ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600')}><Truck size={19} /></span>
-          <div className="min-w-0 flex-1">
-            <div className="text-sm font-bold">
-              {dues.data.overdue > 0 ? `${inr(dues.data.overdue)} overdue to vendors` : `${inr(dues.data.due_soon)} due to vendors this week`}
-            </div>
-            <div className="truncate text-xs text-muted">{dues.data.vendors.map((v) => v.name).join(' · ')}</div>
-          </div>
-          <ArrowRight size={18} className="shrink-0 text-muted" />
-        </Link>
-      )}
-
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat icon={Users} label="Waiting" value={groups.waiting.length} tone="bg-amber-50 text-amber-600" />
         <Stat icon={Stethoscope} label="With doctor" value={groups.with.length} tone="bg-brand-100 text-brand-700" />
@@ -129,13 +98,12 @@ export default function Today() {
           <div className="space-y-6">
             {/* Now with doctor */}
             {groups.with.map((v) => (
-              <div key={v.id} className="card relative overflow-hidden border-brand-200 p-5">
-                <div className="pointer-events-none absolute -top-10 -right-10 size-40 rounded-full bg-brand-100 blur-2xl" />
+              <div key={v.id} className="card relative overflow-hidden border-brand-200 bg-brand-50/50 p-5">
                 <div className="relative flex flex-wrap items-center gap-4">
-                  <div className="live-dot grid size-14 place-items-center rounded-2xl bg-brand-500 text-xl font-extrabold text-white">{v.token_no}</div>
+                  <div className="grid size-14 place-items-center rounded-2xl bg-brand-100 text-xl font-semibold text-brand-800">{v.token_no}</div>
                   <div className="min-w-0 flex-1 basis-48">
-                    <div className="text-xs font-bold tracking-wider text-brand-700 uppercase">Now with doctor · {since(v.called_at)}</div>
-                    <div className="truncate text-lg font-bold">{v.full_name} <span className="text-sm font-medium text-muted">· {v.age}y {v.gender?.[0]}</span></div>
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-brand-700"><span className="live-dot size-1.5 rounded-full bg-brand-500" /> Now with doctor · {since(v.called_at)}</div>
+                    <div className="truncate text-lg font-semibold">{v.full_name} <span className="text-sm font-normal text-muted">· {v.age}y {v.gender?.[0]}</span></div>
                     <div className="truncate text-sm text-muted">{v.complaints || 'No complaints noted'}</div>
                   </div>
                   <div className="flex w-full gap-2 sm:w-auto [&>*]:flex-1 sm:[&>*]:flex-none">
@@ -148,7 +116,7 @@ export default function Today() {
 
             <section>
               <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-lg font-bold">Queue <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-sm text-amber-700">{groups.waiting.length}</span></h2>
+                <h2 className="text-lg font-semibold">Queue <span className="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-sm text-amber-700">{groups.waiting.length}</span></h2>
                 {!!groups.waiting.length && isToday && !groups.with.length && (
                   <button className="btn-soft" onClick={() => sendIn(groups.waiting[0])}><Sparkles size={16} /> {isDoctor ? 'Call next' : 'Send next in'}</button>
                 )}
@@ -160,29 +128,29 @@ export default function Today() {
                 <ul className="space-y-2.5">
                   {groups.waiting.map((v, i) => (
                     <li key={v.id} className={clsx('card group flex flex-wrap items-center gap-4 p-4 transition hover:shadow-lift sm:flex-nowrap', v.id === highlight && 'animate-pop ring-4 ring-brand-200', v.priority && 'border-rose-200 bg-rose-50/40')}>
-                      <div className={clsx('grid size-12 shrink-0 place-items-center rounded-2xl text-lg font-extrabold tabular', v.priority ? 'bg-rose-500 text-white' : i === 0 ? 'bg-brand-100 text-brand-800' : 'bg-slate-100 text-slate-600')}>
+                      <div className={clsx('grid size-12 shrink-0 place-items-center rounded-2xl text-lg font-semibold tabular', v.priority ? 'bg-rose-100 text-rose-700' : i === 0 ? 'bg-brand-100 text-brand-800' : 'bg-slate-100 text-slate-600')}>
                         {v.priority ? <Siren size={20} /> : v.token_no}
                       </div>
                       <div className="min-w-0 flex-1 basis-60">
                         <div className="flex flex-wrap items-center gap-x-2">
-                          <span className="truncate font-bold">{v.full_name}</span>
+                          <span className="truncate font-semibold">{v.full_name}</span>
                           <span className="text-sm text-muted">{v.age}y · {v.gender?.[0]}</span>
-                          {v.visit_type === 'new' ? <span className="rounded-full bg-sky-50 px-2 text-[11px] font-bold text-sky-700">NEW</span> : <span className="rounded-full bg-violet-50 px-2 text-[11px] font-bold text-violet-700">FOLLOW-UP</span>}
+                          {v.visit_type === 'new' ? <span className="rounded-full bg-sky-50 px-2 text-xs font-medium text-sky-700">New</span> : <span className="rounded-full bg-violet-50 px-2 text-xs font-medium text-violet-700">Follow-up</span>}
                         </div>
                         <div className="mt-0.5 truncate text-sm text-slate-600">{v.complaints || <span className="text-muted">No complaints noted</span>}{v.complaint_duration && <span className="text-muted"> · {v.complaint_duration}</span>}</div>
                         <div className="mt-1.5 flex flex-wrap items-center gap-2">
                           <VitalsMini v={v} />
-                          {v.known_conditions?.map((c) => <span key={c} className="rounded-lg bg-brand-50 px-1.5 py-0.5 text-[11px] font-semibold text-brand-700">{c}</span>)}
+                          {v.known_conditions?.map((c) => <span key={c} className="rounded-lg bg-brand-50 px-1.5 py-0.5 text-[11px] font-medium text-brand-700">{c}</span>)}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted"><Clock size={13} /> {since(v.created_at)}</div>
+                      <div className="flex items-center gap-1.5 text-xs whitespace-nowrap text-muted"><Clock size={13} /> {since(v.created_at)}</div>
                       <div className="flex items-center gap-1">
                         {isToday && (
-                          <button className="btn-primary" onClick={() => sendIn(v)}>
+                          <button className={i === 0 ? 'btn-primary' : 'btn-soft'} onClick={() => sendIn(v)}>
                             <MonitorUp size={16} /> <span className="sm:hidden">{isDoctor ? 'Call in' : 'Send in'}</span><span className="max-sm:hidden">{isDoctor ? 'Call in' : 'Display to doctor'}</span>
                           </button>
                         )}
-                        <RowMenu items={[
+                        <ActionMenu label="Visit actions" items={[
                           { label: 'Update vitals', icon: Pencil, onClick: () => setEdit(v) },
                           { label: 'Open case file', icon: FileText, onClick: () => navigate(`/app/patients/${v.patient_id}`) },
                           { label: 'Cancel visit', icon: XCircle, danger: true, onClick: () => act(() => api.post(`/visits/${v.id}/cancel`), 'Visit cancelled') },
@@ -197,14 +165,14 @@ export default function Today() {
 
           {/* Completed */}
           <section>
-            <h2 className="mb-3 text-lg font-bold">Seen & ready to hand over <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-sm text-emerald-700">{groups.done.length}</span></h2>
+            <h2 className="mb-3 text-lg font-semibold">Seen & ready to hand over <span className="ml-1 rounded-full bg-emerald-100 px-2 py-0.5 text-sm text-emerald-700">{groups.done.length}</span></h2>
             <div className="card divide-y divide-line/70">
               {!groups.done.length && <Empty icon={CheckCircle2} title="No completed consultations yet" text="Once the doctor finishes, the patient shows up here with a one-tap A4 print." />}
               {groups.done.map((v) => (
                 <div key={v.id} className={clsx('flex items-center gap-3 p-4', v.id === highlight && 'bg-brand-50')}>
                   <Avatar name={v.full_name} tone="slate" className="size-10 text-xs" />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-bold">{v.full_name} <span className="font-normal text-muted">· #{v.token_no}</span></div>
+                    <div className="truncate text-sm font-semibold">{v.full_name} <span className="font-normal text-muted">· #{v.token_no}</span></div>
                     <div className="truncate text-xs text-muted">{v.diagnosis || '—'}{v.next_visit_date && ` · next ${fmtShort(v.next_visit_date)}`}</div>
                     <div className="mt-0.5 text-[11px] text-slate-400 tabular">{caseFmt(v.case_no)} · {fmtTime(v.completed_at)} · {inr(v.fee)} {v.payment_mode}</div>
                   </div>
@@ -215,6 +183,22 @@ export default function Today() {
             </div>
           </section>
         </div>
+      )}
+
+      {/* Vendor dues: a quiet reminder at the end of the day's work, not a headline */}
+      {dues.data && (dues.data.overdue > 0 || dues.data.due_soon > 0) && (
+        <Link to="/app/vendors" className="card mt-8 flex items-center gap-3 p-4 transition hover:border-brand-200">
+          <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-slate-100 text-slate-500"><Truck size={18} /></span>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-medium">Vendor payments</div>
+            <div className="truncate text-xs text-muted">
+              {[dues.data.overdue > 0 && `${inr(dues.data.overdue)} past the agreed date`, dues.data.due_soon > 0 && `${inr(dues.data.due_soon)} due this week`].filter(Boolean).join(' · ')}
+              {' — '}{dues.data.vendors.map((v) => v.name).join(', ')}
+            </div>
+          </div>
+          <span className="hidden text-sm text-brand-700 sm:inline">View</span>
+          <ArrowRight size={16} className="shrink-0 text-muted" />
+        </Link>
       )}
 
       {edit && <VisitIntakeModal open mode="edit" visit={edit} patient={edit} onClose={() => setEdit(null)} onSaved={() => reload()} />}

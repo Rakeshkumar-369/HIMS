@@ -1,12 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import clsx from 'clsx';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, MoreHorizontal } from 'lucide-react';
 import { STATUS } from '../lib/constants';
 import { initials } from '../lib/format';
 
 export function Field({ label, hint, children, className, required }) {
-  // Group-style controls (chip rows, pickers) must not sit inside <label>, or clicking the caption activates the first button.
   // Only a lone input/select/textarea may sit inside <label>; anything with buttons (chip rows, pickers) uses a div,
   // otherwise clicking the caption would activate the first button.
   const kids = [children].flat().filter(Boolean);
@@ -79,6 +78,47 @@ export function Modal({ open, onClose, title, children, wide, xl, footer }) {
   );
 }
 
+/* "⋯" menu. Rendered at the app root and positioned on screen, so it is never hidden
+   behind the next card, and it opens upwards when there is no room below. */
+export function ActionMenu({ items, label = 'More actions' }) {
+  const btn = useRef(null);
+  const [pos, setPos] = useState(null);
+  useEffect(() => {
+    if (!pos) return undefined;
+    const close = () => setPos(null);
+    const key = (e) => e.key === 'Escape' && close();
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    window.addEventListener('keydown', key);
+    return () => { window.removeEventListener('scroll', close, true); window.removeEventListener('resize', close); window.removeEventListener('keydown', key); };
+  }, [pos]);
+  const toggle = () => {
+    if (pos) return setPos(null);
+    const r = btn.current.getBoundingClientRect();
+    const height = items.length * 40 + 12;
+    const up = r.bottom + height + 8 > window.innerHeight && r.top > height + 8;
+    setPos({ right: Math.max(8, window.innerWidth - r.right), ...(up ? { bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }) });
+  };
+  return (
+    <>
+      <button ref={btn} className="btn-ghost p-2" onClick={toggle} onBlur={() => setTimeout(() => setPos(null), 150)} aria-label={label} aria-haspopup="menu" aria-expanded={!!pos}>
+        <MoreHorizontal size={18} />
+      </button>
+      {pos && createPortal(
+        <div role="menu" style={pos} className="animate-pop fixed z-50 w-52 rounded-2xl border border-line bg-white p-1.5 shadow-lift">
+          {items.map(({ label: l, icon: Icon, onClick, danger }) => (
+            <button key={l} role="menuitem" onMouseDown={() => { setPos(null); onClick(); }}
+              className={clsx('flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm hover:bg-slate-50', danger ? 'text-rose-600' : 'text-slate-700')}>
+              <Icon size={16} /> {l}
+            </button>
+          ))}
+        </div>,
+        document.getElementById('root'),
+      )}
+    </>
+  );
+}
+
 export const Spinner = ({ className }) => <Loader2 className={clsx('animate-spin text-brand-500', className)} size={20} />;
 
 export function PageLoader() {
@@ -114,8 +154,8 @@ export function PageHeader({ title, subtitle, actions, eyebrow }) {
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div className="min-w-0">
-        {eyebrow && <div className="mb-1 text-xs font-bold tracking-wider text-brand-600 uppercase">{eyebrow}</div>}
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-[28px]">{title}</h1>
+        {eyebrow && <div className="mb-1 text-xs font-medium text-brand-600">{eyebrow}</div>}
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-[27px]">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -131,7 +171,7 @@ export function Segmented({ options, value, onChange, className }) {
         const l = typeof o === 'string' ? o : o.label;
         return (
           <button key={v} type="button" onClick={() => onChange(v)}
-            className={clsx('rounded-xl px-3 py-1.5 text-[13px] font-semibold transition', value === v ? 'bg-brand-500 text-white shadow-sm' : 'text-muted hover:text-ink')}>
+            className={clsx('rounded-xl px-3 py-1.5 text-[13px] font-medium transition', value === v ? 'bg-brand-100 text-brand-800' : 'text-muted hover:text-ink')}>
             {l}
           </button>
         );
