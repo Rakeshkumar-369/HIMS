@@ -33,3 +33,11 @@ export const STATUS = {
   completed: { label: 'Done', cls: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
   cancelled: { label: 'Cancelled', cls: 'bg-slate-100 text-slate-500 ring-slate-200' },
 };
+
+export const PAY_MODES = ['UPI', 'Cash', 'Bank', 'Cheque', 'Card'];
+
+export const PRACTICE_TYPES = [
+  { value: 'clinic', label: 'Clinic owner', hint: 'Runs one or more clinics (patients, queue, consult room, accounts, vendors)' },
+  { value: 'freelance', label: 'Freelance', hint: 'Visits hospitals / clinics: work log, workplaces, earnings & balance sheet' },
+  { value: 'both', label: 'Both', hint: 'Owns a clinic and also works at other hospitals' },
+];

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import clsx from 'clsx';
-import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle, Stethoscope, Wallet } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle, Stethoscope, Wallet, Truck } from 'lucide-react';
 import { useAuth } from '../context/authCtx';
 import { api } from '../lib/api';
 import { useFetch } from '../lib/hooks';
@@ -38,7 +39,7 @@ export default function Accounts() {
 
   return (
     <div className="animate-in">
-      <PageHeader eyebrow={clinic.name} title="Accounts" subtitle="Consultation fees are added automatically. Record everything else here." actions={<Segmented options={PERIODS} value={days} onChange={setDays} />} />
+      <PageHeader eyebrow={clinic.name} title="Accounts" subtitle="Consultation fees and vendor payments are added automatically. Record everything else here." actions={<Segmented options={PERIODS} value={days} onChange={setDays} />} />
       <div className="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
         <div className="card p-3 sm:p-5"><div className="text-xs font-semibold text-muted">Income</div><div className="mt-1 text-[15px] font-extrabold sm:text-2xl text-emerald-700 tabular">{inr(inc)}</div><div className="mt-1 text-xs text-muted max-sm:hidden">incl. {inr(data.consultation.amount)} from {data.consultation.visits} consultations</div></div>
         <div className="card p-3 sm:p-5"><div className="text-xs font-semibold text-muted">Outflow</div><div className="mt-1 text-[15px] font-extrabold sm:text-2xl text-rose-600 tabular">{inr(exp)}</div></div>
@@ -68,14 +69,16 @@ export default function Accounts() {
           {!data.transactions.length && <Empty icon={Wallet} title="No entries in this period" />}
           <ul className="divide-y divide-line/70">
             {data.transactions.map((t) => (
-              <li key={t.id} className="group flex items-center gap-3 px-5 py-3">
+              <li key={`${t.source}-${t.id}`} className="group flex items-center gap-3 px-5 py-3">
                 {t.kind === 'income' ? <ArrowDownCircle size={20} className="shrink-0 text-emerald-500" /> : <ArrowUpCircle size={20} className="shrink-0 text-rose-400" />}
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold">{t.category}{t.note && <span className="font-normal text-muted"> · {t.note}</span>}</div>
-                  <div className="text-xs text-muted">{fmtDate(t.txn_date)}</div>
+                  <div className="text-xs text-muted">{fmtDate(t.txn_date)}{t.source === 'vendor' && <span className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-sky-50 px-1.5 font-semibold text-sky-700"><Truck size={11} /> Vendor payment</span>}</div>
                 </div>
                 <span className={clsx('font-bold tabular', t.kind === 'income' ? 'text-emerald-700' : 'text-ink')}>{t.kind === 'income' ? '+' : '−'}{inr(t.amount)}</span>
-                <button onClick={() => remove(t.id)} className="btn-ghost p-1.5 text-rose-500 opacity-0 group-hover:opacity-100 max-md:opacity-100" aria-label="Delete"><Trash2 size={15} /></button>
+                {t.source === 'vendor'
+                  ? <Link to={`/app/vendors/${t.vendor_id}`} className="btn-ghost p-1.5 text-xs" title="Manage in Vendors">Open</Link>
+                  : <button onClick={() => remove(t.id)} className="btn-ghost p-1.5 text-rose-500 opacity-0 group-hover:opacity-100 max-md:opacity-100" aria-label="Delete"><Trash2 size={15} /></button>}
               </li>
             ))}
           </ul>

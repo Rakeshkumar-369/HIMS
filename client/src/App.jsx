@@ -21,6 +21,14 @@ const PrintVisit = lazy(() => import('./pages/PrintVisit'));
 const PrintPatient = lazy(() => import('./pages/PrintPatient'));
 const PortalLogin = lazy(() => import('./pages/portal/PortalLogin'));
 const Portal = lazy(() => import('./pages/portal/Portal'));
+const Vendors = lazy(() => import('./pages/Vendors'));
+const VendorDetail = lazy(() => import('./pages/VendorDetail'));
+const PrintStatement = lazy(() => import('./pages/PrintStatement'));
+const WorkLog = lazy(() => import('./pages/practice/WorkLog'));
+const Workplaces = lazy(() => import('./pages/practice/Workplaces'));
+const WorkplaceDetail = lazy(() => import('./pages/practice/WorkplaceDetail'));
+const Earnings = lazy(() => import('./pages/practice/Earnings'));
+const PracticeExpenses = lazy(() => import('./pages/practice/Expenses'));
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
 const AdminHome = lazy(() => import('./pages/admin/AdminHome'));
 const AdminDoctors = lazy(() => import('./pages/admin/AdminDoctors'));
@@ -28,14 +36,20 @@ const AdminDoctorNew = lazy(() => import('./pages/admin/AdminDoctorNew'));
 const AdminDoctor = lazy(() => import('./pages/admin/AdminDoctor'));
 const AdminAudit = lazy(() => import('./pages/admin/AdminAudit'));
 
-/** Clinic staff (doctors & nurses) only. */
-function Staff({ doctor, children }) {
+/**
+ * Doctors & nurses. `doctor` = doctors only; `practice` = visiting-practice tools (freelance / both);
+ * `clinic` = screens that need a clinic (a freelance-only doctor is sent to the work log instead).
+ */
+function Staff({ doctor, practice, clinic, children }) {
   const { user, loading, clinics, logout } = useAuth();
   const { pathname } = useLocation();
   if (loading) return <PageLoader />;
   if (!user) return <Navigate to="/login" replace />;
   if (user.must_change_password || user.role === 'admin') return <Navigate to={homeFor(user)} replace />;
-  if (doctor && user.role !== 'doctor') return <Navigate to="/app/today" replace />;
+  if ((doctor || practice) && user.role !== 'doctor') return <Navigate to="/app/today" replace />;
+  const freelancer = user.role === 'doctor' && user.practice_type !== 'clinic';
+  if (practice && !freelancer) return <Navigate to="/app/today" replace />;
+  if (!clinics.length && freelancer) return clinic ? <Navigate to="/app/work" replace /> : children;
   if (!clinics.length) {
     if (user.role === 'doctor') return pathname.startsWith('/app/clinics') ? children : <Navigate to="/app/clinics" replace />;
     return (
@@ -73,16 +87,25 @@ export default function App() {
         <Route path="/portal" element={<Portal />} />
         <Route path="/print/visit/:id" element={<Staff><PrintVisit /></Staff>} />
         <Route path="/print/patient/:id" element={<Staff><PrintPatient /></Staff>} />
+        <Route path="/print/statement/:kind/:id" element={<Staff doctor><PrintStatement /></Staff>} />
         <Route path="/app" element={<Staff><AppShell /></Staff>}>
           <Route index element={<Navigate to="today" replace />} />
-          <Route path="today" element={<Today />} />
-          <Route path="register" element={<NewCase />} />
-          <Route path="consult" element={<Staff doctor><Consult /></Staff>} />
-          <Route path="consult/:visitId" element={<Staff doctor><Consult /></Staff>} />
-          <Route path="patients" element={<Patients />} />
-          <Route path="patients/:id" element={<PatientFile />} />
-          <Route path="dashboard" element={<Staff doctor><Dashboard /></Staff>} />
-          <Route path="accounts" element={<Staff doctor><Accounts /></Staff>} />
+          <Route path="today" element={<Staff clinic><Today /></Staff>} />
+          <Route path="register" element={<Staff clinic><NewCase /></Staff>} />
+          <Route path="consult" element={<Staff doctor clinic><Consult /></Staff>} />
+          <Route path="consult/:visitId" element={<Staff doctor clinic><Consult /></Staff>} />
+          <Route path="patients" element={<Staff clinic><Patients /></Staff>} />
+          <Route path="patients/:id" element={<Staff clinic><PatientFile /></Staff>} />
+          <Route path="dashboard" element={<Staff doctor clinic><Dashboard /></Staff>} />
+          <Route path="accounts" element={<Staff doctor clinic><Accounts /></Staff>} />
+          <Route path="vendors" element={<Staff doctor clinic><Vendors /></Staff>} />
+          <Route path="vendors/:id" element={<Staff doctor><VendorDetail /></Staff>} />
+          <Route path="my-vendors" element={<Staff practice><Vendors personal /></Staff>} />
+          <Route path="work" element={<Staff practice><WorkLog /></Staff>} />
+          <Route path="workplaces" element={<Staff practice><Workplaces /></Staff>} />
+          <Route path="workplaces/:id" element={<Staff practice><WorkplaceDetail /></Staff>} />
+          <Route path="earnings" element={<Staff practice><Earnings /></Staff>} />
+          <Route path="expenses" element={<Staff practice><PracticeExpenses /></Staff>} />
           <Route path="clinics" element={<Staff doctor><Clinics /></Staff>} />
           <Route path="settings" element={<Settings />} />
         </Route>

@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { toast } from 'sonner';
 import {
   CalendarClock, UserPlus, Stethoscope, Users, BarChart3, Wallet, Building2, Settings, LogOut, Search, ChevronDown, Check, Palette,
+  Truck, ClipboardList, Hospital, Landmark, Receipt, ClipboardPlus, Briefcase,
 } from 'lucide-react';
 import { useAuth } from '../context/authCtx';
 import { useLive, useHotkey } from '../lib/hooks';
@@ -23,9 +24,18 @@ const NAV = [
   { to: '/app/patients', label: 'Patients', icon: Users, hint: 'Case files' },
   { to: '/app/dashboard', label: 'Insights', icon: BarChart3, doctor: true, hint: 'Analytics' },
   { to: '/app/accounts', label: 'Accounts', icon: Wallet, doctor: true, hint: 'Income & expenses' },
+  { to: '/app/vendors', label: 'Vendors', icon: Truck, doctor: true, hint: 'Orders & payments' },
   { to: '/app/clinics', label: 'Clinics', icon: Building2, doctor: true, hint: 'Clinic mapping & staff' },
-  { to: '/app/settings', label: 'Settings', icon: Settings, hint: 'Profile & theme' },
 ];
+// Visiting / freelance practice
+const PRACTICE_NAV = [
+  { to: '/app/work', label: 'Work log', icon: ClipboardList, hint: 'Services & dues' },
+  { to: '/app/workplaces', label: 'Workplaces', icon: Hospital, hint: 'Hospitals & clinics' },
+  { to: '/app/earnings', label: 'Earnings', icon: Landmark, hint: 'Balance sheet' },
+  { to: '/app/expenses', label: 'My expenses', icon: Receipt, hint: 'Travel, CME…' },
+  { to: '/app/my-vendors', label: 'My vendors', icon: Truck, hint: 'Own purchases' },
+];
+const SETTINGS = { to: '/app/settings', label: 'Settings', icon: Settings, hint: 'Profile & theme' };
 
 function ClinicSwitcher() {
   const { clinics, clinic, setClinicId, isDoctor, upsertClinic } = useAuth();
@@ -98,20 +108,27 @@ export default function AppShell() {
   });
 
   useHotkey('mod+k', () => setSearchOpen(true));
-  useHotkey('n', () => navigate('/app/register'));
-  useHotkey('t', () => navigate('/app/today'));
+  useHotkey('n', () => navigate(clinicId ? '/app/register' : '/app/work?new=1'));
+  useHotkey('t', () => navigate(clinicId ? '/app/today' : '/app/work'));
 
-  const items = NAV.filter((n) => !n.doctor || isDoctor);
-  // Phone: Today · Patients · (＋ New case) · Consult · More
-  const tabPaths = ['/app/today', '/app/patients', ...(isDoctor ? ['/app/consult'] : [])];
+  // What this person works as: clinic only, freelance only, or both
+  const practice = isDoctor && user.practice_type !== 'clinic';
+  const hasClinic = !!clinicId;
+  const clinicItems = hasClinic ? NAV.filter((n) => !n.doctor || isDoctor) : [];
+  const practiceItems = practice ? PRACTICE_NAV : [];
+  const items = [...clinicItems, ...practiceItems, SETTINGS];
+
+  // Phone bottom bar: three tabs around a big ＋ action, then More
+  const tabPaths = hasClinic
+    ? ['/app/today', '/app/patients', practice ? '/app/work' : isDoctor ? '/app/consult' : null].filter(Boolean)
+    : ['/app/work', '/app/workplaces', '/app/earnings'];
   const tabs = tabPaths.map((to) => items.find((n) => n.to === to)).map((n) => (n.to === '/app/consult' ? { ...n, label: 'Consult' } : n));
+  const fab = hasClinic ? { to: '/app/register', label: 'New case', icon: UserPlus } : { to: '/app/work?new=1', label: 'Log work', icon: ClipboardPlus };
   const more = items.filter((n) => !tabPaths.includes(n.to) && n.to !== '/app/register');
   const signOut = () => { logout(); navigate('/login'); };
 
-  const navList = (
-    <nav className="flex flex-col gap-1">
-      {items.map(({ to, label, icon: Icon, hint }) => (
-        <NavLink key={to} to={to}
+  const link = ({ to, label, icon: Icon, hint }) => (
+        <NavLink key={to} to={to} end={to === '/app/vendors'}
           className={({ isActive }) => clsx('group flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-semibold transition',
             isActive ? 'bg-brand-500 text-white shadow-[0_8px_20px_-8px_var(--brand-500)]' : 'text-slate-600 hover:bg-white hover:text-ink')}>
           {({ isActive }) => (
@@ -122,7 +139,15 @@ export default function AppShell() {
             </>
           )}
         </NavLink>
-      ))}
+  );
+  const heading = (text) => <div className="mt-3 mb-1 px-3 text-[11px] font-bold tracking-wider text-muted uppercase first:mt-0">{text}</div>;
+  const navList = (
+    <nav className="flex flex-col gap-1">
+      {clinicItems.length > 0 && practiceItems.length > 0 && heading('Clinic')}
+      {clinicItems.map(link)}
+      {practiceItems.length > 0 && clinicItems.length > 0 && heading('Visiting practice')}
+      {practiceItems.map(link)}
+      {link(SETTINGS)}
     </nav>
   );
 
@@ -147,7 +172,9 @@ export default function AppShell() {
         {navList}
         <div className="mt-auto space-y-3">
           <div className="rounded-2xl bg-brand-50 px-3 py-2.5 text-xs text-brand-800">
-            <b>Shortcuts</b> · <span className="kbd">N</span> new case · <span className="kbd">T</span> today · <span className="kbd">Ctrl K</span> search
+            {hasClinic
+              ? <><b>Shortcuts</b> · <span className="kbd">N</span> new case · <span className="kbd">T</span> today · <span className="kbd">Ctrl K</span> search</>
+              : <><b>Shortcuts</b> · <span className="kbd">N</span> log work · <span className="kbd">T</span> work log</>}
           </div>
           {userCard}
         </div>
@@ -157,19 +184,24 @@ export default function AppShell() {
       <header className="no-print sticky top-0 z-20 border-b border-line/60 bg-white/60 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-3 px-4 sm:px-6">
           <span className="lg:hidden"><Logo className="size-8" /></span>
-          <ClinicSwitcher />
+          {hasClinic ? <ClinicSwitcher /> : (
+            <span className="flex items-center gap-2 rounded-2xl border border-line bg-white/80 py-1.5 pr-3 pl-1.5">
+              <span className="grid size-8 place-items-center rounded-xl bg-brand-500 text-white"><Briefcase size={16} /></span>
+              <span className="leading-tight"><b className="block text-sm">My practice</b><span className="text-[11px] text-muted">Visiting doctor</span></span>
+            </span>
+          )}
           <div className="flex-1" />
-          <button onClick={() => setSearchOpen(true)} className="hidden items-center gap-2 rounded-2xl border border-line bg-white/80 px-3 py-2 text-sm text-muted transition hover:border-brand-300 md:flex md:w-72">
+          {hasClinic && <button onClick={() => setSearchOpen(true)} className="hidden items-center gap-2 rounded-2xl border border-line bg-white/80 px-3 py-2 text-sm text-muted transition hover:border-brand-300 md:flex md:w-72">
             <Search size={16} /> <span className="flex-1 text-left">Find patient, case ID, phone…</span> <span className="kbd">Ctrl K</span>
-          </button>
-          <button onClick={() => setSearchOpen(true)} className="btn-ghost p-2 md:hidden" aria-label="Search"><Search size={21} /></button>
-          <span className={clsx('size-2.5 shrink-0 rounded-full sm:hidden', connected ? 'live-dot bg-emerald-500' : 'bg-amber-400')} title={connected ? 'Live' : 'Offline'} />
+          </button>}
+          {hasClinic && <button onClick={() => setSearchOpen(true)} className="btn-ghost p-2 md:hidden" aria-label="Search"><Search size={21} /></button>}
+          {hasClinic && <span className={clsx('size-2.5 shrink-0 rounded-full sm:hidden', connected ? 'live-dot bg-emerald-500' : 'bg-amber-400')} title={connected ? 'Live' : 'Offline'} />}
           <ModeToggle className="max-lg:hidden" />
-          <div title={connected ? 'Live sync on — doctor & nurse screens update instantly' : 'Reconnecting…'}
+          {hasClinic && <div title={connected ? 'Live sync on — doctor & nurse screens update instantly' : 'Reconnecting…'}
             className={clsx('hidden items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold sm:flex', connected ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700')}>
             <span className={clsx('size-2 rounded-full', connected ? 'live-dot bg-emerald-500' : 'bg-amber-400')} />
             {connected ? 'Live' : 'Offline'}
-          </div>
+          </div>}
         </div>
       </header>
 
@@ -177,7 +209,7 @@ export default function AppShell() {
         <Outlet />
       </main>
 
-      <MobileNav tabs={tabs} fab={{ to: '/app/register', label: 'New case', icon: UserPlus }} more={more}
+      <MobileNav tabs={tabs} fab={fab} more={more}
         header={<div className="flex min-w-0 items-center gap-3"><Avatar name={user.full_name} /><div className="min-w-0"><div className="truncate font-bold">{user.full_name}</div><div className="text-xs text-muted capitalize">{user.role}</div></div></div>}
         footer={<button onClick={signOut} className="btn-outline w-full py-3 text-rose-600"><LogOut size={17} /> Sign out</button>} />
 

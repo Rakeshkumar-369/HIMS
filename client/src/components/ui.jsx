@@ -7,7 +7,10 @@ import { initials } from '../lib/format';
 
 export function Field({ label, hint, children, className, required }) {
   // Group-style controls (chip rows, pickers) must not sit inside <label>, or clicking the caption activates the first button.
-  const Tag = [children].flat().some((c) => c && typeof c.type !== 'string') ? 'div' : 'label';
+  // Only a lone input/select/textarea may sit inside <label>; anything with buttons (chip rows, pickers) uses a div,
+  // otherwise clicking the caption would activate the first button.
+  const kids = [children].flat().filter(Boolean);
+  const Tag = kids.length && kids.every((c) => ['input', 'select', 'textarea', 'datalist'].includes(c.type)) ? 'label' : 'div';
   return (
     <Tag className={clsx('block', className)}>
       {label && (

@@ -4,19 +4,26 @@ import { toast } from 'sonner';
 import { UserRound, MapPin, Building2, KeyRound, Plus, Trash2, Minus, CheckCircle2 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { generatePassword, isStrong } from '../../lib/password';
-import { Field, PageHeader, Toggle } from '../../components/ui';
+import { Field, PageHeader, Toggle, Segmented } from '../../components/ui';
 import { Section } from '../../components/intake';
 import ThemePicker from '../../components/ThemePicker';
 import PasswordField from '../../components/PasswordField';
 import { THEMES } from '../../lib/themes';
+import { PRACTICE_TYPES } from '../../lib/constants';
 
 const blankClinic = (i) => ({ name: '', city: '', address: '', phone: '', consultation_fee: 300, theme: THEMES[i % THEMES.length].id });
 
 export default function AdminDoctorNew() {
   const navigate = useNavigate();
   const [d, setD] = useState({ full_name: 'Dr. ', email: '', phone: '', qualification: '', registration_no: '', specialization: '', address: '', city: '' });
+  const [practice, setPractice] = useState('clinic');
   const [max, setMax] = useState(1);
   const [clinics, setClinics] = useState([blankClinic(0)]);
+  const choosePractice = (p) => {
+    setPractice(p);
+    // a freelance-only doctor doesn't need a clinic; switching back offers one again
+    if (p === 'freelance') { setMax(0); setClinics([]); } else if (max === 0) { setMax(1); setClinics([blankClinic(0)]); }
+  };
   const [password, setPassword] = useState(generatePassword);
   const [mustChange, setMustChange] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -33,7 +40,7 @@ export default function AdminDoctorNew() {
     e.preventDefault();
     setBusy(true);
     try {
-      const { id } = await api.post('/admin/doctors', { ...d, max_clinics: max, clinics: clinics.filter((c) => c.name.trim()), password, must_change_password: mustChange });
+      const { id } = await api.post('/admin/doctors', { ...d, practice_type: practice, max_clinics: max, clinics: clinics.filter((c) => c.name.trim()), password, must_change_password: mustChange });
       toast.success(`${d.full_name} can now sign in`, { description: `Email: ${d.email} · Password: ${password}`, duration: 15000 });
       navigate(`/admin/doctors/${id}`);
     } catch (err) { toast.error(err.message); } finally { setBusy(false); }
@@ -44,6 +51,10 @@ export default function AdminDoctorNew() {
       <PageHeader eyebrow="Accounts" title="New doctor" subtitle="Create the doctor's profile, their clinics and a first-time password." />
       <div className="grid gap-5 xl:grid-cols-[1fr_340px]">
         <div className="space-y-5">
+          <Section icon={UserRound} title="Works as">
+            <div className="overflow-x-auto no-scrollbar"><Segmented options={PRACTICE_TYPES} value={practice} onChange={choosePractice} /></div>
+            <p className="mt-3 text-sm text-muted">{PRACTICE_TYPES.find((x) => x.value === practice).hint}</p>
+          </Section>
           <Section icon={UserRound} title="Profile">
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="Full name" required className="md:col-span-2"><input className="input text-base" required value={d.full_name} onChange={s('full_name')} /></Field>

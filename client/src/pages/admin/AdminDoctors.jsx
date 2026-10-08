@@ -30,7 +30,7 @@ export default function AdminDoctors() {
               <Link to={`/admin/doctors/${d.id}`} className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1 px-5 py-3.5 transition hover:bg-brand-50/50 lg:grid-cols-[2fr_1.3fr_0.8fr_0.8fr_1fr_1fr_20px]">
                 <div className="flex min-w-0 items-center gap-3">
                   <Avatar name={d.full_name} className="size-10 text-xs" />
-                  <div className="min-w-0"><div className="truncate font-semibold">{d.full_name}</div><div className="truncate text-xs text-muted">{d.specialization || d.qualification || (d.max_clinics ? 'Doctor' : 'Associate doctor')}</div></div>
+                  <div className="min-w-0"><div className="truncate font-semibold">{d.full_name}</div><div className="truncate text-xs text-muted">{{ clinic: 'Clinic owner', freelance: 'Freelance', both: 'Clinic + freelance' }[d.practice_type]}{(d.specialization || d.qualification) && ` · ${d.specialization || d.qualification}`}</div></div>
                 </div>
                 <div className="min-w-0 text-sm max-lg:hidden"><div className="truncate">{d.email}</div><div className="truncate text-xs text-muted">{[d.phone, d.city].filter(Boolean).join(' · ') || '—'}</div></div>
                 <span className="text-sm font-semibold tabular max-lg:hidden">{d.clinics_owned} <span className="font-normal text-muted">/ {d.max_clinics}</span></span>

@@ -6,12 +6,13 @@ import { api } from '../../lib/api';
 import { useFetch, useMode } from '../../lib/hooks';
 import { generatePassword, isStrong } from '../../lib/password';
 import { palette } from '../../lib/themes';
-import { PageLoader, Avatar, Field, Modal, Toggle } from '../../components/ui';
+import { PageLoader, Avatar, Field, Modal, Toggle, Segmented } from '../../components/ui';
 import { Section } from '../../components/intake';
 import ThemePicker from '../../components/ThemePicker';
 import PasswordField from '../../components/PasswordField';
 import DoctorStatus from '../../components/DoctorStatus';
 import { fmtDate, fmtTime, inr, num } from '../../lib/format';
+import { PRACTICE_TYPES } from '../../lib/constants';
 
 const PROFILE = ['full_name', 'email', 'phone', 'qualification', 'registration_no', 'specialization', 'address', 'city'];
 
@@ -75,18 +76,19 @@ function DoctorEditor({ data, reload }) {
   const { mode } = useMode();
   const [form, setForm] = useState(() => Object.fromEntries(PROFILE.map((k) => [k, data.doctor[k] || ''])));
   const [max, setMax] = useState(data.doctor.max_clinics);
+  const [practice, setPractice] = useState(data.doctor.practice_type || 'clinic');
   const [modal, setModal] = useState(null);
   const [busy, setBusy] = useState(false);
 
   const { doctor: d, clinics, staff } = data;
   const s = (k) => (e) => setForm({ ...form, [k]: e.target.value });
-  const dirty = PROFILE.some((k) => (d[k] || '') !== form[k]) || max !== d.max_clinics;
+  const dirty = PROFILE.some((k) => (d[k] || '') !== form[k]) || max !== d.max_clinics || practice !== d.practice_type;
 
   const call = async (fn, msg) => {
     setBusy(true);
     try { await fn(); if (msg) toast.success(msg); reload(); } catch (e) { toast.error(e.message); } finally { setBusy(false); }
   };
-  const save = () => call(() => api.patch(`/admin/doctors/${d.id}`, { ...form, max_clinics: max }), 'Profile saved');
+  const save = () => call(() => api.patch(`/admin/doctors/${d.id}`, { ...form, max_clinics: max, practice_type: practice }), 'Profile saved');
   const toggleActive = () => {
     if (d.is_active && !window.confirm(`Deactivate ${d.full_name}? They will be signed out and cannot sign in until re-activated.`)) return;
     call(() => api.patch(`/admin/doctors/${d.id}`, { is_active: !d.is_active }), d.is_active ? 'Account deactivated' : 'Account re-activated');
@@ -129,6 +131,11 @@ function DoctorEditor({ data, reload }) {
             <Field label="City / PIN"><input className="input" value={form.city} onChange={s('city')} /></Field>
           </div>
           <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-line/70 pt-5">
+            <div className="w-full">
+              <div className="mb-2 text-sm font-semibold">Works as</div>
+              <div className="overflow-x-auto no-scrollbar"><Segmented options={PRACTICE_TYPES} value={practice} onChange={setPractice} /></div>
+              <p className="mt-2 text-xs text-muted">{PRACTICE_TYPES.find((x) => x.value === practice).hint}</p>
+            </div>
             <span className="text-sm font-semibold">Clinics this doctor may own</span>
             <div className="inline-flex items-center rounded-2xl border border-line bg-white">
               <button type="button" className="p-2 text-muted hover:text-ink disabled:opacity-30" disabled={max <= clinics.length} onClick={() => setMax(max - 1)} aria-label="Fewer"><Minus size={15} /></button>

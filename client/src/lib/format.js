@@ -50,3 +50,6 @@ export function vitalFlag(key, v, v2) {
     default: return null;
   }
 }
+
+/** Running balance for statements: "₹12,400 due" / "₹500 advance" */
+export const balanceText = (n) => `${inr(Math.abs(n))}${n > 0 ? ' due' : n < 0 ? ' advance' : ''}`;

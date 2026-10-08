@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import clsx from 'clsx';
 import {
   UserPlus, MonitorUp, Printer, Undo2, MoreHorizontal, Pencil, XCircle, Clock, Stethoscope, Users, CheckCircle2, IndianRupee, Siren,
-  CalendarDays, ArrowRight, Sparkles, FileText,
+  CalendarDays, ArrowRight, Sparkles, FileText, Truck,
 } from 'lucide-react';
 import { useAuth } from '../context/authCtx';
 import { api } from '../lib/api';
@@ -76,6 +76,7 @@ export default function Today() {
   const [edit, setEdit] = useState(null);
   const [, tick] = useState(0);
   const { data, loading, reload } = useFetch(clinicId ? `/visits/queue?clinicId=${clinicId}&date=${date}` : null);
+  const dues = useFetch(isDoctor && clinicId ? `/vendors/dues?clinicId=${clinicId}` : null);
   useLiveEvents((e) => e.type === 'queue' && reload());
   useEffect(() => { const t = setInterval(() => tick((x) => x + 1), 30000); return () => clearInterval(t); }, []);
 
@@ -102,6 +103,19 @@ export default function Today() {
           <label className="btn-outline cursor-pointer"><CalendarDays size={16} /><input type="date" value={date} max={todayISO()} onChange={(e) => setDate(e.target.value || todayISO())} className="w-[8.5rem] bg-transparent outline-none" /></label>
           <Link to="/app/register" className="btn-primary max-lg:hidden"><UserPlus size={17} /> New case</Link>
         </>} />
+
+      {dues.data && (dues.data.overdue > 0 || dues.data.due_soon > 0) && (
+        <Link to="/app/vendors" className={clsx('card mb-4 flex items-center gap-3 p-4 transition hover:shadow-lift', dues.data.overdue > 0 ? 'border-rose-200' : 'border-amber-200')}>
+          <span className={clsx('grid size-10 shrink-0 place-items-center rounded-2xl', dues.data.overdue > 0 ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600')}><Truck size={19} /></span>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-bold">
+              {dues.data.overdue > 0 ? `${inr(dues.data.overdue)} overdue to vendors` : `${inr(dues.data.due_soon)} due to vendors this week`}
+            </div>
+            <div className="truncate text-xs text-muted">{dues.data.vendors.map((v) => v.name).join(' · ')}</div>
+          </div>
+          <ArrowRight size={18} className="shrink-0 text-muted" />
+        </Link>
+      )}
 
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat icon={Users} label="Waiting" value={groups.waiting.length} tone="bg-amber-50 text-amber-600" />
